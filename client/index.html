@@ -192,7 +192,7 @@
 
         // Fungsi untuk generate QR
         async function generateQR() {
-            const baseUrl = document.getElementById('baseUrl').value.trim();
+            let baseUrl = document.getElementById('baseUrl').value.trim();
             const userId = document.getElementById('userId').value.trim();
             const courseId = document.getElementById('courseId').value.trim();
             const sessionId = document.getElementById('sessionId').value.trim();
@@ -203,24 +203,47 @@
                 return;
             }
             
+            // Auto-fix: tambahkan /exec jika belum ada
+            if (!baseUrl.endsWith('/exec')) {
+                baseUrl = baseUrl + '/exec';
+                document.getElementById('baseUrl').value = baseUrl;
+                showStatus('ℹ️ URL diperbaiki otomatis (ditambahkan /exec)', 'info');
+            }
+            
             if (!userId || !courseId || !sessionId) {
                 showStatus('❌ User ID, Course ID, dan Session ID harus diisi!', 'error');
                 return;
             }
             
             qrDisplay.innerHTML = '<p class="loading">⏳ Generating QR Code...</p>';
-            showStatus('', 'info');
+            showStatus('⏳ Mengirim request ke backend...', 'info');
             
             try {
                 // Gunakan GET request dengan query parameters
                 const url = `${baseUrl}?path=presence/qr/generate&course_id=${encodeURIComponent(courseId)}&session_id=${encodeURIComponent(sessionId)}`;
                 
-                console.log('Requesting:', url);
+                // Tampilkan URL yang digunakan
+                qrDisplay.innerHTML += `<p style="font-size: 11px; color: #666; word-break: break-all; margin-top: 10px;">URL: ${url}</p>`;
                 
                 const response = await fetch(url);
+                
+                // Cek status response
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
+                }
+                
+                const contentType = response.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    const text = await response.text();
+                    qrDisplay.innerHTML = `<p style="color: red;">❌ Response bukan JSON</p><pre style="font-size: 10px; text-align: left; overflow: auto;">${text.substring(0, 500)}</pre>`;
+                    showStatus('❌ Backend tidak mengembalikan JSON. Mungkin belum di-deploy atau URL salah.', 'error');
+                    return;
+                }
+                
                 const data = await response.json();
                 
-                console.log('Response:', data);
+                // Tampilkan response untuk debugging
+                qrDisplay.innerHTML += `<pre style="font-size: 10px; text-align: left; background: #f0f0f0; padding: 10px; border-radius: 5px; overflow: auto;">${JSON.stringify(data, null, 2)}</pre>`;
                 
                 if (data.ok && data.data && data.data.qr_token) {
                     // Simpan token ke input
@@ -240,13 +263,16 @@
                     
                     showStatus('✅ QR Code berhasil di-generate! Token sudah otomatis terisi.', 'success');
                 } else {
-                    qrDisplay.innerHTML = '<p style="color: red;">❌ Gagal generate QR</p>';
-                    showStatus('❌ ' + (data.error || 'Gagal generate QR Code'), 'error');
+                    qrDisplay.innerHTML = `<p style="color: red;">❌ Gagal generate QR</p><pre style="font-size: 10px; text-align: left;">${JSON.stringify(data, null, 2)}</pre>`;
+                    showStatus('❌ Error dari backend: ' + (data.error || 'Unknown error'), 'error');
                 }
             } catch (error) {
-                qrDisplay.innerHTML = '<p style="color: red;">❌ Error</p>';
-                showStatus('❌ Error: ' + error.message + '<br><small>Cek Console (F12) untuk detail</small>', 'error');
-                console.error('Error:', error);
+                qrDisplay.innerHTML = `<p style="color: red;">❌ Error</p><p style="font-size: 12px;">${error.message}</p>`;
+                showStatus(`❌ Error: ${error.message}<br><br><strong>Kemungkinan penyebab:</strong><br>
+                    1. Backend belum di-deploy<br>
+                    2. URL salah (harus pakai /exec di akhir)<br>
+                    3. Sheet 'tokens' belum dibuat<br>
+                    4. Permission "Anyone" belum diset`, 'error');
             }
         }
 
