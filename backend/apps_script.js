@@ -1,29 +1,20 @@
 /***********************
- * CORS HANDLER
- ***********************/
-function doOptions(e) {
-  return ContentService
-    .createTextOutput("")
-    .setMimeType(ContentService.MimeType.TEXT)
-    .setHeader("Access-Control-Allow-Origin", "*")
-    .setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-    .setHeader("Access-Control-Allow-Headers", "Content-Type");
-}
-
-/***********************
  * ROUTER
  ***********************/
 function doPost(e) {
   try {
+    Logger.log(JSON.stringify(e.parameter));
+
     const path = e.parameter.path;
-    const body = JSON.parse(e.postData.contents || "{}");
+    const body = e.parameter;
 
     if (path === "presence/qr/generate") return generateQR(body);
     if (path === "presence/checkin") return checkin(body);
 
     return outputError("unknown_endpoint");
   } catch (err) {
-    return outputError("server_error");
+    Logger.log(err);
+    return outputError(err.toString());
   }
 }
 
@@ -35,7 +26,7 @@ function doGet(e) {
 
     return outputError("unknown_endpoint");
   } catch (err) {
-    return outputError("server_error");
+    return outputError(err.toString());
   }
 }
 
@@ -45,15 +36,13 @@ function doGet(e) {
 function outputSuccess(data) {
   return ContentService
     .createTextOutput(JSON.stringify({ ok: true, data }))
-    .setMimeType(ContentService.MimeType.JSON)
-    .setHeader("Access-Control-Allow-Origin", "*");
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 function outputError(message) {
   return ContentService
     .createTextOutput(JSON.stringify({ ok: false, error: message }))
-    .setMimeType(ContentService.MimeType.JSON)
-    .setHeader("Access-Control-Allow-Origin", "*");
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 function validateRequired(fields, body) {
@@ -75,6 +64,7 @@ function generateQR(body) {
   if (requiredError) return outputError(requiredError);
 
   const sheet = SpreadsheetApp.getActive().getSheetByName("tokens");
+  if (!sheet) return outputError("tokens_sheet_not_found");
 
   const token = "TKN-" + Math.random().toString(36).substring(2,8).toUpperCase();
   const now = new Date();
@@ -109,6 +99,9 @@ function checkin(body) {
   const ss = SpreadsheetApp.getActive();
   const tokenSheet = ss.getSheetByName("tokens");
   const presSheet = ss.getSheetByName("presence");
+
+  if (!tokenSheet) return outputError("tokens_sheet_not_found");
+  if (!presSheet) return outputError("presence_sheet_not_found");
 
   const tokens = tokenSheet.getDataRange().getValues();
   let tokenRow = null;
@@ -171,6 +164,8 @@ function status(q) {
     return outputError("missing_query_parameter");
 
   const sheet = SpreadsheetApp.getActive().getSheetByName("presence");
+  if (!sheet) return outputError("presence_sheet_not_found");
+
   const data = sheet.getDataRange().getValues();
 
   for (let i = data.length - 1; i > 0; i--) {
