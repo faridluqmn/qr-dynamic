@@ -2,13 +2,10 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Student - Check-in</title>
+  <title>Student Check-in</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-      font-family: 'Segoe UI', sans-serif;
-    }
+    * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
 
     body {
       margin: 0;
@@ -28,23 +25,12 @@
       text-align: center;
     }
 
-    h2 {
-      margin-bottom: 20px;
-      color: #333;
-    }
-
     input {
       width: 100%;
       padding: 10px;
       margin: 8px 0;
       border-radius: 8px;
       border: 1px solid #ddd;
-      outline: none;
-      transition: 0.3s;
-    }
-
-    input:focus {
-      border-color: #1cc88a;
     }
 
     button {
@@ -55,22 +41,17 @@
       border-radius: 8px;
       cursor: pointer;
       transition: 0.3s;
-      margin-top: 10px;
     }
 
-    button:hover {
-      background: #17a673;
-    }
+    button:hover { background: #17a673; }
 
     .result {
       margin-top: 15px;
-      font-size: 14px;
       background: #f8f9fc;
       padding: 10px;
       border-radius: 8px;
       text-align: left;
-      max-height: 120px;
-      overflow: auto;
+      font-size: 14px;
     }
   </style>
 </head>
@@ -82,7 +63,7 @@
 
   <input type="text" id="user_id" placeholder="User ID">
   <input type="text" id="device_id" placeholder="Device ID">
-  <input type="text" id="qr_token" placeholder="Scan / Paste QR Token">
+  <input type="text" id="qr_token" placeholder="Paste QR Token">
 
   <button onclick="checkin()">Check-in</button>
 
@@ -94,21 +75,21 @@
 const BASE_URL = "PASTE_BASE_URL_KAMU";
 
 async function checkin() {
-  const user_id = document.getElementById("user_id").value;
-  const device_id = document.getElementById("device_id").value;
-  const qr_token = document.getElementById("qr_token").value;
+
+  const params = new URLSearchParams();
+  params.append("user_id", document.getElementById("user_id").value);
+  params.append("device_id", document.getElementById("device_id").value);
+  params.append("course_id", "cloud-101");
+  params.append("session_id", "sesi-01");
+  params.append("qr_token", document.getElementById("qr_token").value);
+  params.append("ts", new Date().toISOString());
 
   const res = await fetch(`${BASE_URL}?path=presence/checkin`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      user_id,
-      device_id,
-      course_id: "cloud-101",
-      session_id: "sesi-01",
-      qr_token,
-      ts: new Date().toISOString()
-    })
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: params
   });
 
   const data = await res.json();

@@ -2,14 +2,11 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Admin - Generate QR</title>
+  <title>Generate QR Sesi</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
   <style>
-    * {
-      box-sizing: border-box;
-      font-family: 'Segoe UI', sans-serif;
-    }
+    * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
 
     body {
       margin: 0;
@@ -29,10 +26,7 @@
       text-align: center;
     }
 
-    h2 {
-      margin-bottom: 20px;
-      color: #333;
-    }
+    h2 { margin-bottom: 20px; }
 
     button {
       background: #4e73df;
@@ -44,9 +38,7 @@
       transition: 0.3s;
     }
 
-    button:hover {
-      background: #2e59d9;
-    }
+    button:hover { background: #2e59d9; }
 
     #qrcode {
       margin-top: 20px;
@@ -54,11 +46,7 @@
       justify-content: center;
     }
 
-    .info {
-      margin-top: 10px;
-      font-size: 14px;
-      color: #555;
-    }
+    .info { margin-top: 10px; font-size: 14px; }
   </style>
 </head>
 
@@ -80,27 +68,34 @@ const BASE_URL = "https://script.google.com/macros/s/AKfycbzYvqQ3iHUUEBdlW1EPB1R
 let timer;
 
 async function generateQR() {
+
+  const params = new URLSearchParams();
+  params.append("course_id", "cloud-101");
+  params.append("session_id", "sesi-01");
+  params.append("ts", new Date().toISOString());
+
   const res = await fetch(`${BASE_URL}?path=presence/qr/generate`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      course_id: "cloud-101",
-      session_id: "sesi-01",
-      ts: new Date().toISOString()
-    })
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: params
   });
 
   const data = await res.json();
 
   if (data.ok) {
+
     const token = data.data.qr_token;
 
-    document.getElementById("tokenText").innerText = "Token: " + token;
+    document.getElementById("tokenText").innerText =
+      "Token: " + token;
 
     document.getElementById("qrcode").innerHTML = "";
     new QRCode(document.getElementById("qrcode"), token);
 
     startCountdown(120);
+
   } else {
     alert(data.error);
   }
