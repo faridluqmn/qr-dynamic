@@ -1,4 +1,16 @@
 /***********************
+ * CORS HANDLER
+ ***********************/
+function doOptions(e) {
+  return ContentService
+    .createTextOutput("")
+    .setMimeType(ContentService.MimeType.TEXT)
+    .setHeader("Access-Control-Allow-Origin", "*")
+    .setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+    .setHeader("Access-Control-Allow-Headers", "Content-Type");
+}
+
+/***********************
  * ROUTER
  ***********************/
 function doPost(e) {
@@ -33,13 +45,15 @@ function doGet(e) {
 function outputSuccess(data) {
   return ContentService
     .createTextOutput(JSON.stringify({ ok: true, data }))
-    .setMimeType(ContentService.MimeType.JSON);
+    .setMimeType(ContentService.MimeType.JSON)
+    .setHeader("Access-Control-Allow-Origin", "*");
 }
 
 function outputError(message) {
   return ContentService
     .createTextOutput(JSON.stringify({ ok: false, error: message }))
-    .setMimeType(ContentService.MimeType.JSON);
+    .setMimeType(ContentService.MimeType.JSON)
+    .setHeader("Access-Control-Allow-Origin", "*");
 }
 
 function validateRequired(fields, body) {
@@ -64,7 +78,7 @@ function generateQR(body) {
 
   const token = "TKN-" + Math.random().toString(36).substring(2,8).toUpperCase();
   const now = new Date();
-  const exp = new Date(now.getTime() + 2 * 60 * 1000); // 2 menit
+  const exp = new Date(now.getTime() + 2 * 60 * 1000);
 
   sheet.appendRow([
     token,
@@ -97,7 +111,6 @@ function checkin(body) {
   const presSheet = ss.getSheetByName("presence");
 
   const tokens = tokenSheet.getDataRange().getValues();
-
   let tokenRow = null;
 
   for (let i = 1; i < tokens.length; i++) {
@@ -119,7 +132,6 @@ function checkin(body) {
   if (new Date() > tokenExpiry)
     return outputError("token_expired");
 
-  // Cek sudah pernah check-in?
   const presData = presSheet.getDataRange().getValues();
 
   for (let i = 1; i < presData.length; i++) {
