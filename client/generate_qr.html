@@ -1,103 +1,166 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Generate QR Sesi</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<meta charset="UTF-8">
+<title>Admin - Generate QR</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-  <style>
-    * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+<style>
+* { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
 
-    body {
-      margin: 0;
-      background: linear-gradient(135deg, #4e73df, #1cc88a);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
+body {
+  margin: 0;
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
 
-    .card {
-      background: white;
-      padding: 30px;
-      width: 380px;
-      border-radius: 15px;
-      box-shadow: 0 15px 30px rgba(0,0,0,0.2);
-      text-align: center;
-    }
+.card {
+  background: white;
+  width: 420px;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  text-align: center;
+}
 
-    h2 { margin-bottom: 20px; }
+h2 {
+  margin-bottom: 20px;
+  color: #333;
+}
 
-    button {
-      background: #4e73df;
-      color: white;
-      border: none;
-      padding: 10px 18px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
+input {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  outline: none;
+  transition: 0.2s;
+}
 
-    button:hover { background: #2e59d9; }
+input:focus {
+  border-color: #2a5298;
+}
 
-    #qrcode {
-      margin-top: 20px;
-      display: flex;
-      justify-content: center;
-    }
+button {
+  width: 100%;
+  background: #2a5298;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: 0.3s;
+  font-weight: bold;
+}
 
-    .info { margin-top: 10px; font-size: 14px; }
-  </style>
+button:hover {
+  background: #1e3c72;
+}
+
+#qrcode {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.token-box {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #555;
+  word-break: break-all;
+}
+
+.status {
+  margin-top: 8px;
+  font-weight: bold;
+}
+
+.active { color: green; }
+.expired { color: red; }
+
+.countdown {
+  margin-top: 5px;
+  font-size: 14px;
+}
+</style>
 </head>
 
 <body>
 
 <div class="card">
   <h2>Generate QR Sesi</h2>
+
+  <input type="text" id="course_id" placeholder="Course ID (contoh: cloud-101)">
+  <input type="text" id="session_id" placeholder="Session ID (contoh: sesi-01)">
+
   <button onclick="generateQR()">Generate QR</button>
 
   <div id="qrcode"></div>
-  <p class="info" id="tokenText"></p>
-  <p class="info" id="countdown"></p>
+  <div class="token-box" id="tokenText"></div>
+  <div class="status" id="statusText"></div>
+  <div class="countdown" id="countdown"></div>
 </div>
 
 <script>
 
 const BASE_URL = "https://script.google.com/macros/s/AKfycbzYvqQ3iHUUEBdlW1EPB1RNUfunIz15vA1dqe5hYGLsgsNEVmRpZIO6o9zVFEhsRXF3LQ/exec";
-
 let timer;
 
 async function generateQR() {
 
+  const course = document.getElementById("course_id").value.trim();
+  const session = document.getElementById("session_id").value.trim();
+
+  if (!course || !session) {
+    alert("Course ID dan Session ID wajib diisi");
+    return;
+  }
+
   const params = new URLSearchParams();
-  params.append("course_id", "cloud-101");
-  params.append("session_id", "sesi-01");
+  params.append("path", "presence/qr/generate");
+  params.append("course_id", course);
+  params.append("session_id", session);
   params.append("ts", new Date().toISOString());
 
-  const res = await fetch(`${BASE_URL}?path=presence/qr/generate`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
-    body: params
-  });
+  try {
 
-  const data = await res.json();
+    const res = await fetch(BASE_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: params
+    });
 
-  if (data.ok) {
+    const data = await res.json();
+
+    if (!data.ok) {
+      alert(data.error);
+      return;
+    }
 
     const token = data.data.qr_token;
 
-    document.getElementById("tokenText").innerText =
-      "Token: " + token;
-
     document.getElementById("qrcode").innerHTML = "";
-    new QRCode(document.getElementById("qrcode"), token);
+    new QRCode(document.getElementById("qrcode"), {
+      text: token,
+      width: 200,
+      height: 200
+    });
+
+    document.getElementById("tokenText").innerText = "Token: " + token;
+    document.getElementById("statusText").innerText = "Status: ACTIVE";
+    document.getElementById("statusText").className = "status active";
 
     startCountdown(120);
 
-  } else {
-    alert(data.error);
+  } catch (err) {
+    alert("Gagal menghubungi server");
   }
 }
 
@@ -106,15 +169,19 @@ function startCountdown(seconds) {
   let remaining = seconds;
 
   timer = setInterval(() => {
+
     document.getElementById("countdown").innerText =
-      "Expired in: " + remaining + " seconds";
+      "Expired dalam: " + remaining + " detik";
 
     remaining--;
 
     if (remaining < 0) {
       clearInterval(timer);
-      document.getElementById("countdown").innerText = "QR Expired";
+      document.getElementById("statusText").innerText = "Status: EXPIRED";
+      document.getElementById("statusText").className = "status expired";
+      document.getElementById("countdown").innerText = "";
     }
+
   }, 1000);
 }
 
