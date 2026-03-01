@@ -31,11 +31,15 @@ function doGet(e) {
   try {
     const path = e.parameter.path;
 
+    if (path === "presence/qr/generate") {
+      // Support GET untuk generate QR (untuk bypass CORS)
+      return generateQR(e.parameter);
+    }
     if (path === "presence/status") return status(e.parameter);
 
     return outputError("unknown_endpoint");
   } catch (err) {
-    return outputError("server_error");
+    return outputError("server_error: " + err.message);
   }
 }
 
@@ -69,12 +73,14 @@ function validateRequired(fields, body) {
 function generateQR(body) {
 
   const requiredError = validateRequired(
-    ["course_id", "session_id", "ts"],
+    ["course_id", "session_id"],
     body
   );
   if (requiredError) return outputError(requiredError);
 
   const sheet = SpreadsheetApp.getActive().getSheetByName("tokens");
+  
+  if (!sheet) return outputError("Sheet 'tokens' tidak ditemukan. Pastikan ada sheet bernama 'tokens'");
 
   const token = "TKN-" + Math.random().toString(36).substring(2,8).toUpperCase();
   const now = new Date();

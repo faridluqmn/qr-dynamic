@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Dynamic - Client Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: bold;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #5568d3;
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        #qrDisplay {
+            text-align: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            min-height: 100px;
+        }
+        
+        #qrDisplay img {
+            max-width: 250px;
+            margin: 10px auto;
+        }
+        
+        #statusDisplay {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-style: italic;
+        }
+        
+        .token-display {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            word-break: break-all;
+            font-family: monospace;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 QR Dynamic Demo</h1>
+        
+        <!-- Base URL Configuration -->
+        <div class="section">
+            <label for="baseUrl">Base URL (dari Backend):</label>
+            <input type="text" id="baseUrl" placeholder="https://script.google.com/macros/s/..." value="">
+        </div>
+        
+        <!-- Generate QR Section -->
+        <div class="section">
+            <label for="userId">User ID:</label>
+            <input type="text" id="userId" placeholder="Masukkan User ID" value="user123">
+            
+            <label for="courseId" style="margin-top: 10px;">Course ID:</label>
+            <input type="text" id="courseId" placeholder="Masukkan Course ID" value="COURSE-001">
+            
+            <label for="sessionId" style="margin-top: 10px;">Session ID:</label>
+            <input type="text" id="sessionId" placeholder="Masukkan Session ID" value="SESSION-001">
+            
+            <button onclick="generateQR()" style="margin-top: 10px;">Generate QR Code</button>
+        </div>
+        
+        <!-- QR Display -->
+        <div id="qrDisplay"></div>
+        
+        <!-- Check-in Section -->
+        <div class="section">
+            <label for="token">Token (dari QR atau manual):</label>
+            <input type="text" id="token" placeholder="Paste token di sini">
+            <button onclick="checkIn()" style="margin-top: 10px;">Check-in</button>
+        </div>
+        
+        <!-- Check Status Section -->
+        <div class="section">
+            <button onclick="checkStatus()">Cek Status Kehadiran</button>
+        </div>
+        
+        <!-- Status Display -->
+        <div id="statusDisplay"></div>
+    </div>
+
+    <script>
+        // Fungsi untuk menampilkan status
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('statusDisplay');
+            statusDiv.className = 'status-' + type;
+            statusDiv.innerHTML = message;
+            statusDiv.style.display = 'block';
+        }
+
+        // Fungsi untuk generate QR
+        async function generateQR() {
+            const baseUrl = document.getElementById('baseUrl').value.trim();
+            const userId = document.getElementById('userId').value.trim();
+            const courseId = document.getElementById('courseId').value.trim();
+            const sessionId = document.getElementById('sessionId').value.trim();
+            const qrDisplay = document.getElementById('qrDisplay');
+            
+            if (!baseUrl) {
+                showStatus('❌ Base URL harus diisi!', 'error');
+                return;
+            }
+            
+            if (!userId || !courseId || !sessionId) {
+                showStatus('❌ User ID, Course ID, dan Session ID harus diisi!', 'error');
+                return;
+            }
+            
+            qrDisplay.innerHTML = '<p class="loading">⏳ Generating QR Code...</p>';
+            showStatus('', 'info');
+            
+            try {
+                // Gunakan GET request dengan query parameters
+                const url = `${baseUrl}?path=presence/qr/generate&course_id=${encodeURIComponent(courseId)}&session_id=${encodeURIComponent(sessionId)}`;
+                
+                console.log('Requesting:', url);
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                console.log('Response:', data);
+                
+                if (data.ok && data.data && data.data.qr_token) {
+                    // Simpan token ke input
+                    document.getElementById('token').value = data.data.qr_token;
+                    
+                    // Tampilkan QR Code
+                    qrDisplay.innerHTML = `
+                        <h3>✅ QR Code Berhasil Dibuat!</h3>
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(data.data.qr_token)}" alt="QR Code">
+                        <div class="token-display">
+                            <strong>Token:</strong><br>${data.data.qr_token}
+                        </div>
+                        <p style="margin-top: 10px; color: #666; font-size: 12px;">
+                            Expired: ${data.data.expires_at || 'N/A'}
+                        </p>
+                    `;
+                    
+                    showStatus('✅ QR Code berhasil di-generate! Token sudah otomatis terisi.', 'success');
+                } else {
+                    qrDisplay.innerHTML = '<p style="color: red;">❌ Gagal generate QR</p>';
+                    showStatus('❌ ' + (data.error || 'Gagal generate QR Code'), 'error');
+                }
+            } catch (error) {
+                qrDisplay.innerHTML = '<p style="color: red;">❌ Error</p>';
+                showStatus('❌ Error: ' + error.message + '<br><small>Cek Console (F12) untuk detail</small>', 'error');
+                console.error('Error:', error);
+            }
+        }
+
+        // Fungsi untuk check-in
+        async function checkIn() {
+            const baseUrl = document.getElementById('baseUrl').value.trim();
+            const token = document.getElementById('token').value.trim();
+            const userId = document.getElementById('userId').value.trim();
+            const courseId = document.getElementById('courseId').value.trim();
+            const sessionId = document.getElementById('sessionId').value.trim();
+            
+            if (!baseUrl) {
+                showStatus('❌ Base URL harus diisi!', 'error');
+                return;
+            }
+            
+            if (!token || !userId || !courseId || !sessionId) {
+                showStatus('❌ Token, User ID, Course ID, dan Session ID harus diisi!', 'error');
+                return;
+            }
+            
+            showStatus('⏳ Sedang check-in...', 'info');
+            
+            try {
+                const payload = {
+                    user_id: userId,
+                    device_id: 'WEB-' + Date.now(),
+                    course_id: courseId,
+                    session_id: sessionId,
+                    qr_token: token,
+                    ts: new Date().toISOString()
+                };
+                
+                console.log('Check-in payload:', payload);
+                
+                const response = await fetch(`${baseUrl}?path=presence/checkin`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+                
+                console.log('Check-in response:', data);
+                
+                if (data.ok && data.data) {
+                    showStatus(`✅ Check-in berhasil!<br>Presence ID: ${data.data.presence_id}<br>Status: ${data.data.status}`, 'success');
+                } else {
+                    showStatus('❌ ' + (data.error || 'Check-in gagal'), 'error');
+                }
+            } catch (error) {
+                showStatus('❌ Error: ' + error.message, 'error');
+                console.error('Error:', error);
+            }
+        }
+
+        // Fungsi untuk cek status
+        async function checkStatus() {
+            const baseUrl = document.getElementById('baseUrl').value.trim();
+            const userId = document.getElementById('userId').value.trim();
+            const courseId = document.getElementById('courseId').value.trim();
+            const sessionId = document.getElementById('sessionId').value.trim();
+            
+            if (!baseUrl) {
+                showStatus('❌ Base URL harus diisi!', 'error');
+                return;
+            }
+            
+            if (!userId || !courseId || !sessionId) {
+                showStatus('❌ User ID, Course ID, dan Session ID harus diisi!', 'error');
+                return;
+            }
+            
+            showStatus('⏳ Mengecek status...', 'info');
+            
+            try {
+                const url = `${baseUrl}?path=presence/status&user_id=${encodeURIComponent(userId)}&course_id=${encodeURIComponent(courseId)}&session_id=${encodeURIComponent(sessionId)}`;
+                
+                console.log('Status URL:', url);
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                console.log('Status response:', data);
+                
+                if (data.ok && data.data) {
+                    showStatus(`
+                        <strong>✅ Status Ditemukan</strong><br>
+                        User: ${data.data.user_id}<br>
+                        Course: ${data.data.course_id}<br>
+                        Session: ${data.data.session_id}<br>
+                        Status: ${data.data.status}<br>
+                        Waktu: ${data.data.last_ts}
+                    `, 'success');
+                } else {
+                    showStatus('❌ ' + (data.error || 'User belum check-in'), 'info');
+                }
+            } catch (error) {
+                showStatus('❌ Error: ' + error.message, 'error');
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
