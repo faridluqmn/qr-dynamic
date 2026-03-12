@@ -1,8 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
+
 <meta charset="UTF-8">
-<title>Accelerometer Telemetry</title>
+
+<!-- penting supaya tidak kecil di HP -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Accelerometer Telemetry Dashboard</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -10,25 +15,25 @@
 
 *{
 box-sizing:border-box;
-font-family:"Segoe UI", Arial, sans-serif;
+font-family:"Segoe UI",Arial,sans-serif;
 }
 
 body{
 margin:0;
+background:linear-gradient(135deg,#1e3c72,#2a5298);
 min-height:100vh;
 display:flex;
 justify-content:center;
 align-items:center;
-background:linear-gradient(135deg,#1e3c72,#2a5298);
 padding:20px;
 }
 
-/* container responsive */
+/* container */
 
 .container{
 background:white;
 width:100%;
-max-width:520px;
+max-width:600px;
 padding:25px;
 border-radius:14px;
 box-shadow:0 20px 40px rgba(0,0,0,0.25);
@@ -38,7 +43,7 @@ box-shadow:0 20px 40px rgba(0,0,0,0.25);
 
 h2{
 text-align:center;
-margin-bottom:15px;
+margin-bottom:20px;
 color:#2a5298;
 }
 
@@ -53,7 +58,7 @@ margin-bottom:15px;
 font-size:15px;
 }
 
-/* button group */
+/* buttons */
 
 .buttons{
 display:flex;
@@ -98,11 +103,9 @@ gap:12px;
 margin-bottom:20px;
 }
 
-/* sensor box */
-
 .sensor-box{
 background:#f2f5fa;
-padding:18px 10px;
+padding:16px;
 border-radius:10px;
 text-align:center;
 }
@@ -110,20 +113,58 @@ text-align:center;
 .label{
 font-size:13px;
 color:#777;
-margin-bottom:5px;
 }
 
 .value{
 font-size:22px;
 font-weight:bold;
 color:#2a5298;
+margin-top:5px;
+}
+
+/* 3D phone */
+
+.phone-wrapper{
+display:flex;
+justify-content:center;
+margin-bottom:25px;
+perspective:800px;
+}
+
+.phone3d{
+width:80px;
+height:160px;
+background:#111;
+border-radius:16px;
+border:3px solid #444;
+transform-style:preserve-3d;
+transition:transform 0.05s linear;
+position:relative;
+}
+
+.phone3d::before{
+content:"";
+position:absolute;
+top:8px;
+left:50%;
+transform:translateX(-50%);
+width:30px;
+height:4px;
+background:#666;
+border-radius:2px;
+}
+
+.screen{
+width:100%;
+height:100%;
+background:#e9eef7;
+border-radius:12px;
 }
 
 /* chart */
 
-.chart-wrapper{
-width:100%;
-height:220px;
+.chart-container{
+height:250px;
 }
 
 /* status */
@@ -133,13 +174,13 @@ margin-top:15px;
 padding:10px;
 border-radius:8px;
 background:#eef3ff;
-font-size:14px;
 text-align:center;
+font-size:14px;
 }
 
-/* mobile improvements */
+/* mobile */
 
-@media (max-width:480px){
+@media(max-width:480px){
 
 .container{
 padding:20px;
@@ -149,8 +190,13 @@ padding:20px;
 font-size:20px;
 }
 
-.chart-wrapper{
-height:200px;
+.phone3d{
+width:70px;
+height:140px;
+}
+
+.chart-container{
+height:220px;
 }
 
 }
@@ -164,7 +210,7 @@ height:200px;
 
 <h2>Accelerometer Telemetry</h2>
 
-<input id="device_id" placeholder="Masukkan Device ID (contoh: HP-01)" />
+<input id="device_id" placeholder="Masukkan Device ID (contoh: HP-01)">
 
 <div class="buttons">
 <button class="start" onclick="startSensor()">Start</button>
@@ -190,7 +236,13 @@ height:200px;
 
 </div>
 
-<div class="chart-wrapper">
+<div class="phone-wrapper">
+<div class="phone3d" id="phone3d">
+<div class="screen"></div>
+</div>
+</div>
+
+<div class="chart-container">
 <canvas id="chart"></canvas>
 </div>
 
@@ -205,9 +257,9 @@ const API_URL="https://script.google.com/macros/s/AKfycbwzUheSSP7Ht8vf4vLjOhqP7t
 let batch=[];
 let sensorActive=false;
 
-const ctx=document.getElementById("chart");
+/* chart */
 
-const chart=new Chart(ctx,{
+const chart=new Chart(document.getElementById("chart"),{
 type:"line",
 data:{
 labels:[],
@@ -248,6 +300,8 @@ suggestedMax:20
 }
 });
 
+/* start sensor */
+
 function startSensor(){
 
 const DEVICE_ID=document.getElementById("device_id").value.trim();
@@ -263,33 +317,39 @@ if(typeof DeviceMotionEvent.requestPermission==="function"){
 
 DeviceMotionEvent.requestPermission()
 .then(permissionState=>{
-
 if(permissionState==="granted"){
 window.addEventListener("devicemotion",handleMotion);
+window.addEventListener("deviceorientation",handleOrientation);
 sensorActive=true;
 }
-
-})
-.catch(console.error);
+});
 
 }else{
 
 window.addEventListener("devicemotion",handleMotion);
+window.addEventListener("deviceorientation",handleOrientation);
 sensorActive=true;
 
 }
 
 document.getElementById("status").innerText="Sensor aktif...";
+
 }
+
+/* stop sensor */
 
 function stopSensor(){
 
 window.removeEventListener("devicemotion",handleMotion);
+window.removeEventListener("deviceorientation",handleOrientation);
+
 sensorActive=false;
 
 document.getElementById("status").innerText="Sensor dihentikan";
 
 }
+
+/* motion */
 
 function handleMotion(event){
 
@@ -318,11 +378,25 @@ sendBatch();
 
 }
 
+/* orientation */
+
+function handleOrientation(event){
+
+let beta=event.beta||0;
+let gamma=event.gamma||0;
+
+document.getElementById("phone3d").style.transform=
+`rotateX(${beta}deg) rotateY(${gamma}deg)`;
+
+}
+
+/* chart update */
+
 function updateChart(ax,ay,az){
 
-const time=new Date().toLocaleTimeString();
+const t=new Date().toLocaleTimeString();
 
-chart.data.labels.push(time);
+chart.data.labels.push(t);
 chart.data.datasets[0].data.push(ax);
 chart.data.datasets[1].data.push(ay);
 chart.data.datasets[2].data.push(az);
@@ -335,6 +409,8 @@ chart.data.datasets.forEach(d=>d.data.shift());
 chart.update();
 
 }
+
+/* send telemetry */
 
 function sendBatch(){
 
@@ -362,10 +438,7 @@ batch=[];
 
 })
 .catch(()=>{
-
-document.getElementById("status").innerText=
-"Gagal kirim data";
-
+document.getElementById("status").innerText="Gagal kirim data";
 });
 
 }
