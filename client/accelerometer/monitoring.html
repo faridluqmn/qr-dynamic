@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Device Monitoring</title>
+
+<style>
+
+body{
+font-family:Arial;
+margin:0;
+background:#f4f6fb;
+}
+
+header{
+background:#2a5298;
+color:white;
+padding:15px;
+text-align:center;
+}
+
+.container{
+max-width:1000px;
+margin:auto;
+padding:20px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+background:white;
+border-radius:10px;
+overflow:hidden;
+box-shadow:0 5px 15px rgba(0,0,0,0.1);
+}
+
+th,td{
+padding:12px;
+text-align:center;
+}
+
+th{
+background:#eef2ff;
+}
+
+tr:nth-child(even){
+background:#f8f9ff;
+}
+
+.status{
+font-weight:bold;
+color:green;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+<h2>Device Telemetry Monitoring</h2>
+</header>
+
+<div class="container">
+
+<table id="deviceTable">
+
+<thead>
+
+<tr>
+<th>Device ID</th>
+<th>AX</th>
+<th>AY</th>
+<th>AZ</th>
+<th>Last Update</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+</tbody>
+
+</table>
+
+</div>
+
+<script>
+
+const API_URL="YOUR_APPS_SCRIPT_ENDPOINT?path=telemetry/latest";
+
+async function loadData(){
+
+try{
+
+const res=await fetch(API_URL);
+
+const data=await res.json();
+
+const tbody=document.querySelector("#deviceTable tbody");
+
+tbody.innerHTML="";
+
+data.devices.forEach(device=>{
+
+const row=`
+<tr>
+<td>${device.device_id}</td>
+<td>${device.ax.toFixed(2)}</td>
+<td>${device.ay.toFixed(2)}</td>
+<td>${device.az.toFixed(2)}</td>
+<td>${device.ts}</td>
+</tr>
+`;
+
+tbody.innerHTML+=row;
+
+});
+
+}catch(e){
+
+console.log(e);
+
+}
+
+}
+
+loadData();
+
+setInterval(loadData,3000);
+
+</script>
+
+</body>
+</html>
