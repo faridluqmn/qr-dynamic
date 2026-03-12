@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QR Dynamic - Client Demo</title>
+    <title>Dashboard Dosen - QR Presensi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -11,344 +14,450 @@
             box-sizing: border-box;
         }
         
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+        
+        @keyframes moveGrid {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+        
         body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4facfe);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: moveGrid 20s linear infinite;
+            pointer-events: none;
         }
         
         .container {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            max-width: 500px;
-            width: 100%;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 650px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
         }
         
-        h1 {
-            text-align: center;
-            color: #333;
+        .header {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 50px;
             margin-bottom: 30px;
+            box-shadow: 0 25px 70px rgba(0,0,0,0.25), inset 0 0 0 1px rgba(255,255,255,0.2);
+            text-align: center;
+            animation: fadeIn 0.6s ease;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.18);
         }
         
-        .section {
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+        
+        .header h1 {
+            color: white;
+            font-size: 42px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            text-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
+            letter-spacing: -0.5px;
+        }
+        
+        .header .subtitle {
+            color: rgba(255,255,255,0.95);
+            font-size: 17px;
+            font-weight: 300;
+            position: relative;
+            z-index: 1;
+            letter-spacing: 0.5px;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(255,255,255,0.5);
+            animation: fadeIn 0.8s ease;
+            border: 1px solid rgba(255,255,255,0.4);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 70px rgba(0,0,0,0.2), inset 0 0 0 1px rgba(255,255,255,0.5);
+        }
+        
+        .card h3 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 600;
+            font-size: 22px;
+            letter-spacing: -0.3px;
+            margin-bottom: 25px;
+        }
+        
+        .form-group {
             margin-bottom: 25px;
         }
         
         label {
             display: block;
-            margin-bottom: 8px;
-            color: #555;
-            font-weight: bold;
+            margin-bottom: 12px;
+            color: #2d3748;
+            font-weight: 500;
+            font-size: 15px;
+            letter-spacing: 0.3px;
         }
         
-        input {
+        input, select {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border 0.3s;
+            padding: 16px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 14px;
+            font-size: 15px;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #f8fafc;
+            font-weight: 400;
         }
         
-        input:focus {
+        input:focus, select:focus {
             outline: none;
             border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1), 0 4px 12px rgba(102, 126, 234, 0.15);
+            transform: translateY(-2px);
         }
         
-        button {
+        input::placeholder {
+            color: #a0aec0;
+            font-weight: 300;
+        }
+        
+        .btn {
             width: 100%;
-            padding: 12px;
-            background: #667eea;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
+            border-radius: 14px;
+            font-size: 17px;
+            font-weight: 600;
+            font-family: 'Poppins', sans-serif;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.35);
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.3px;
         }
         
-        button:hover {
-            background: #5568d3;
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.25);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
         }
         
-        button:disabled {
-            background: #ccc;
+        .btn:hover::before {
+            width: 400px;
+            height: 400px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.45);
+        }
+        
+        .btn:active {
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            background: linear-gradient(135deg, #cbd5e0 0%, #a0aec0 100%);
             cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
         
-        #qrDisplay {
+        .qr-display {
             text-align: center;
-            margin: 20px 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 20px;
+            margin-top: 30px;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.5s ease;
+            box-shadow: 0 15px 40px rgba(240, 147, 251, 0.3);
+        }
+        
+        .qr-display img {
+            max-width: 320px;
+            margin: 25px 0;
+            border: 8px solid white;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+            animation: fadeIn 0.8s ease;
+        }
+        
+        .token-box {
+            background: rgba(255,255,255,0.98);
             padding: 20px;
-            background: #f9f9f9;
-            border-radius: 8px;
-            min-height: 100px;
+            border-radius: 15px;
+            margin-top: 20px;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #2d3748;
+            border: 3px dashed rgba(255,255,255,0.6);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            font-weight: 500;
         }
         
-        #qrDisplay img {
-            max-width: 250px;
-            margin: 10px auto;
+        .alert {
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 25px;
+            font-size: 15px;
+            animation: fadeIn 0.4s ease;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+            font-weight: 500;
         }
         
-        #statusDisplay {
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 15px;
-            display: none;
+        .alert-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            border: none;
         }
         
-        .status-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        .alert-error {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            color: white;
+            border: none;
         }
         
-        .status-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        .status-info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
+        .alert-info {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
         }
         
         .loading {
-            text-align: center;
-            color: #667eea;
+            color: white;
             font-style: italic;
+            font-size: 17px;
+            font-weight: 300;
         }
         
-        .token-display {
-            background: #f0f0f0;
-            padding: 10px;
-            border-radius: 5px;
-            word-break: break-all;
-            font-family: monospace;
-            margin-top: 10px;
+        .info-text {
+            font-size: 13px;
+            color: #718096;
+            margin-top: 8px;
+            font-style: italic;
+            font-weight: 300;
+        }
+        
+        .expired-time {
+            color: white;
+            font-weight: 600;
+            margin-top: 20px;
+            font-size: 16px;
+            background: rgba(0,0,0,0.25);
+            padding: 12px 20px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎯 QR Dynamic Demo</h1>
-        
-        <!-- Base URL Configuration -->
-        <div class="section">
-            <label for="baseUrl">Base URL (dari Backend):</label>
-            <input type="text" id="baseUrl" placeholder="https://script.google.com/macros/s/..." value="">
+        <div class="header">
+            <h1>👨‍🏫 Dashboard Dosen</h1>
+            <p class="subtitle">Sistem Presensi QR Code</p>
         </div>
         
-        <!-- Generate QR Section -->
-        <div class="section">
-            <label for="userId">User ID:</label>
-            <input type="text" id="userId" placeholder="Masukkan User ID" value="user123">
+        <div class="card">
+            <h3>⚙️ Konfigurasi Backend</h3>
+            <div class="form-group">
+                <label>Base URL Backend</label>
+                <input type="text" id="baseUrl" placeholder="https://script.google.com/macros/s/.../exec" value="https://script.google.com/macros/s/AKfycbwzUheSSP7Ht8vf4vLjOhqP7tFTQ-Q5UL8KvDnTrQ9JEYhQ8kgrvLH7s82wNeiNJZ8/exec">
+                <p class="info-text">URL dari Google Apps Script</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>📝 Generate QR Code Presensi</h3>
             
-            <label for="courseId" style="margin-top: 10px;">Course ID:</label>
-            <input type="text" id="courseId" placeholder="Masukkan Course ID" value="COURSE-001">
+            <div class="form-group">
+                <label>Mata Kuliah</label>
+                <input type="text" id="courseId" placeholder="Contoh: CLOUD-COMPUTING-101" value="CLOUD-COMPUTING-101">
+            </div>
             
-            <label for="sessionId" style="margin-top: 10px;">Session ID:</label>
-            <input type="text" id="sessionId" placeholder="Masukkan Session ID" value="SESSION-001">
+            <div class="form-group">
+                <label>Sesi Pertemuan</label>
+                <input type="text" id="sessionId" placeholder="Contoh: PERTEMUAN-01" value="PERTEMUAN-01">
+            </div>
             
-            <button onclick="generateQR()" style="margin-top: 10px;">Generate QR Code</button>
+            <div class="form-group">
+                <label>Durasi Aktif QR</label>
+                <select id="duration">
+                    <option value="2">2 Menit</option>
+                    <option value="5" selected>5 Menit</option>
+                    <option value="10">10 Menit</option>
+                    <option value="15">15 Menit</option>
+                </select>
+            </div>
+            
+            <button class="btn" onclick="generateQR()">🎯 Generate QR Code</button>
+            
+            <div id="qrDisplay" style="display: none;"></div>
+            <div id="alertBox"></div>
         </div>
-        
-        <!-- QR Display -->
-        <div id="qrDisplay"></div>
-        
-        <!-- Check-in Section -->
-        <div class="section">
-            <label for="token">Token (dari QR atau manual):</label>
-            <input type="text" id="token" placeholder="Paste token di sini">
-            <button onclick="checkIn()" style="margin-top: 10px;">Check-in</button>
-        </div>
-        
-        <!-- Check Status Section -->
-        <div class="section">
-            <button onclick="checkStatus()">Cek Status Kehadiran</button>
-        </div>
-        
-        <!-- Status Display -->
-        <div id="statusDisplay"></div>
     </div>
 
     <script>
-        // Fungsi untuk menampilkan status
-        function showStatus(message, type = 'info') {
-            const statusDiv = document.getElementById('statusDisplay');
-            statusDiv.className = 'status-' + type;
-            statusDiv.innerHTML = message;
-            statusDiv.style.display = 'block';
+        window.onload = function() {
+            const savedUrl = localStorage.getItem('baseUrl');
+            if (savedUrl) {
+                document.getElementById('baseUrl').value = savedUrl;
+            }
+        };
+        
+        function showAlert(message, type = 'info') {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.className = 'alert alert-' + type;
+            alertBox.innerHTML = message;
+            alertBox.style.display = 'block';
         }
-
-        // Fungsi untuk generate QR
+        
         async function generateQR() {
-            const baseUrl = document.getElementById('baseUrl').value.trim();
-            const userId = document.getElementById('userId').value.trim();
+            let baseUrl = document.getElementById('baseUrl').value.trim();
             const courseId = document.getElementById('courseId').value.trim();
             const sessionId = document.getElementById('sessionId').value.trim();
             const qrDisplay = document.getElementById('qrDisplay');
+            const alertBox = document.getElementById('alertBox');
             
             if (!baseUrl) {
-                showStatus('❌ Base URL harus diisi!', 'error');
+                showAlert('❌ Base URL harus diisi!', 'error');
                 return;
             }
             
-            if (!userId || !courseId || !sessionId) {
-                showStatus('❌ User ID, Course ID, dan Session ID harus diisi!', 'error');
+            if (!courseId || !sessionId) {
+                showAlert('❌ Mata Kuliah dan Sesi harus diisi!', 'error');
                 return;
             }
             
+            baseUrl = baseUrl.replace(/\/+$/, '');
+            if (!baseUrl.endsWith('/exec')) {
+                baseUrl = baseUrl + '/exec';
+                document.getElementById('baseUrl').value = baseUrl;
+                showAlert('ℹ️ URL diperbaiki otomatis (ditambahkan /exec)', 'info');
+            }
+            
+            localStorage.setItem('baseUrl', baseUrl);
+            
+            qrDisplay.style.display = 'block';
             qrDisplay.innerHTML = '<p class="loading">⏳ Generating QR Code...</p>';
-            showStatus('', 'info');
+            alertBox.style.display = 'none';
             
             try {
-                // Gunakan GET request dengan query parameters
                 const url = `${baseUrl}?path=presence/qr/generate&course_id=${encodeURIComponent(courseId)}&session_id=${encodeURIComponent(sessionId)}`;
                 
-                console.log('Requesting:', url);
-                
                 const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status}`);
+                }
+                
+                const contentType = response.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    const text = await response.text();
+                    throw new Error('Backend tidak mengembalikan JSON. Response: ' + text.substring(0, 100));
+                }
+                
                 const data = await response.json();
                 
-                console.log('Response:', data);
-                
                 if (data.ok && data.data && data.data.qr_token) {
-                    // Simpan token ke input
-                    document.getElementById('token').value = data.data.qr_token;
-                    
-                    // Tampilkan QR Code
                     qrDisplay.innerHTML = `
-                        <h3>✅ QR Code Berhasil Dibuat!</h3>
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(data.data.qr_token)}" alt="QR Code">
-                        <div class="token-display">
+                        <h3 style="color: white; margin-bottom: 20px; font-size: 24px; font-weight: 600;">✅ QR Code Berhasil Dibuat!</h3>
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(data.data.qr_token)}" alt="QR Code">
+                        <div class="token-box">
                             <strong>Token:</strong><br>${data.data.qr_token}
                         </div>
-                        <p style="margin-top: 10px; color: #666; font-size: 12px;">
-                            Expired: ${data.data.expires_at || 'N/A'}
+                        <p class="expired-time">⏰ Expired: ${new Date(data.data.expires_at).toLocaleString('id-ID')}</p>
+                        <p style="margin-top: 20px; color: white; font-size: 15px; font-weight: 300;">
+                            📱 Mahasiswa dapat scan QR code ini untuk presensi
                         </p>
                     `;
                     
-                    showStatus('✅ QR Code berhasil di-generate! Token sudah otomatis terisi.', 'success');
+                    showAlert('✅ QR Code berhasil di-generate! Mahasiswa dapat mulai scan.', 'success');
                 } else {
-                    qrDisplay.innerHTML = '<p style="color: red;">❌ Gagal generate QR</p>';
-                    showStatus('❌ ' + (data.error || 'Gagal generate QR Code'), 'error');
+                    throw new Error(data.error || 'Gagal generate QR Code');
                 }
             } catch (error) {
-                qrDisplay.innerHTML = '<p style="color: red;">❌ Error</p>';
-                showStatus('❌ Error: ' + error.message + '<br><small>Cek Console (F12) untuk detail</small>', 'error');
-                console.error('Error:', error);
-            }
-        }
-
-        // Fungsi untuk check-in
-        async function checkIn() {
-            const baseUrl = document.getElementById('baseUrl').value.trim();
-            const token = document.getElementById('token').value.trim();
-            const userId = document.getElementById('userId').value.trim();
-            const courseId = document.getElementById('courseId').value.trim();
-            const sessionId = document.getElementById('sessionId').value.trim();
-            
-            if (!baseUrl) {
-                showStatus('❌ Base URL harus diisi!', 'error');
-                return;
-            }
-            
-            if (!token || !userId || !courseId || !sessionId) {
-                showStatus('❌ Token, User ID, Course ID, dan Session ID harus diisi!', 'error');
-                return;
-            }
-            
-            showStatus('⏳ Sedang check-in...', 'info');
-            
-            try {
-                const payload = {
-                    user_id: userId,
-                    device_id: 'WEB-' + Date.now(),
-                    course_id: courseId,
-                    session_id: sessionId,
-                    qr_token: token,
-                    ts: new Date().toISOString()
-                };
+                qrDisplay.innerHTML = `
+                    <p style="color: white; font-size: 20px; font-weight: 600;">❌ Error</p>
+                    <p style="color: white; margin-top: 15px; font-weight: 300;">${error.message}</p>
+                `;
                 
-                console.log('Check-in payload:', payload);
-                
-                const response = await fetch(`${baseUrl}?path=presence/checkin`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
-                
-                const data = await response.json();
-                
-                console.log('Check-in response:', data);
-                
-                if (data.ok && data.data) {
-                    showStatus(`✅ Check-in berhasil!<br>Presence ID: ${data.data.presence_id}<br>Status: ${data.data.status}`, 'success');
-                } else {
-                    showStatus('❌ ' + (data.error || 'Check-in gagal'), 'error');
-                }
-            } catch (error) {
-                showStatus('❌ Error: ' + error.message, 'error');
-                console.error('Error:', error);
-            }
-        }
-
-        // Fungsi untuk cek status
-        async function checkStatus() {
-            const baseUrl = document.getElementById('baseUrl').value.trim();
-            const userId = document.getElementById('userId').value.trim();
-            const courseId = document.getElementById('courseId').value.trim();
-            const sessionId = document.getElementById('sessionId').value.trim();
-            
-            if (!baseUrl) {
-                showStatus('❌ Base URL harus diisi!', 'error');
-                return;
-            }
-            
-            if (!userId || !courseId || !sessionId) {
-                showStatus('❌ User ID, Course ID, dan Session ID harus diisi!', 'error');
-                return;
-            }
-            
-            showStatus('⏳ Mengecek status...', 'info');
-            
-            try {
-                const url = `${baseUrl}?path=presence/status&user_id=${encodeURIComponent(userId)}&course_id=${encodeURIComponent(courseId)}&session_id=${encodeURIComponent(sessionId)}`;
-                
-                console.log('Status URL:', url);
-                
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                console.log('Status response:', data);
-                
-                if (data.ok && data.data) {
-                    showStatus(`
-                        <strong>✅ Status Ditemukan</strong><br>
-                        User: ${data.data.user_id}<br>
-                        Course: ${data.data.course_id}<br>
-                        Session: ${data.data.session_id}<br>
-                        Status: ${data.data.status}<br>
-                        Waktu: ${data.data.last_ts}
-                    `, 'success');
-                } else {
-                    showStatus('❌ ' + (data.error || 'User belum check-in'), 'info');
-                }
-            } catch (error) {
-                showStatus('❌ Error: ' + error.message, 'error');
-                console.error('Error:', error);
+                showAlert(`❌ Error: ${error.message}<br><br><strong>Kemungkinan penyebab:</strong><br>
+                    • Backend belum di-deploy dengan kode terbaru<br>
+                    • URL harus diakhiri dengan /exec<br>
+                    • Sheet 'tokens' belum dibuat<br>
+                    • Permission belum diset ke "Anyone"`, 'error');
             }
         }
     </script>
