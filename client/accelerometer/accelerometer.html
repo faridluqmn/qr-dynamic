@@ -4,121 +4,280 @@
 <meta charset="UTF-8">
 <title>Accelerometer Telemetry</title>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
+
+*{
+box-sizing:border-box;
+font-family:"Segoe UI", Arial, sans-serif;
+}
+
 body{
-font-family: Arial;
+margin:0;
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+background:linear-gradient(135deg,#1e3c72,#2a5298);
+}
+
+.container{
+background:white;
+width:420px;
+padding:25px;
+border-radius:14px;
+box-shadow:0 20px 40px rgba(0,0,0,0.25);
+}
+
+h2{
 text-align:center;
-padding:30px;
-background:#f5f5f5;
+margin-bottom:15px;
+color:#2a5298;
 }
 
-h1{
-color:#333;
-}
-
-.data{
-font-size:20px;
-margin:10px;
+.buttons{
+display:flex;
+gap:10px;
+margin-bottom:15px;
 }
 
 button{
-padding:12px 25px;
-font-size:18px;
+flex:1;
+padding:12px;
 border:none;
 border-radius:8px;
-background:#2b7cff;
-color:white;
+font-size:15px;
 cursor:pointer;
+transition:0.2s;
 }
 
-button:hover{
-background:#1a5fd1;
+.start{
+background:#2ecc71;
+color:white;
+}
+
+.start:hover{
+background:#27ae60;
+}
+
+.stop{
+background:#e74c3c;
+color:white;
+}
+
+.stop:hover{
+background:#c0392b;
+}
+
+.sensor-grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:10px;
+margin-bottom:15px;
+}
+
+.sensor-box{
+background:#f2f5fa;
+padding:12px;
+border-radius:8px;
+text-align:center;
+}
+
+.label{
+font-size:13px;
+color:#777;
+}
+
+.value{
+font-size:20px;
+font-weight:bold;
+color:#2a5298;
 }
 
 #status{
-margin-top:20px;
-font-size:16px;
-color:green;
+margin-top:10px;
+padding:8px;
+border-radius:8px;
+background:#eef3ff;
+font-size:14px;
+text-align:center;
 }
-</style>
 
+canvas{
+margin-top:10px;
+}
+
+</style>
 </head>
 
 <body>
 
-<h1>Accelerometer Telemetry</h1>
+<div class="container">
 
-<button onclick="startSensor()">Start Sensor</button>
+<h2>Accelerometer Telemetry</h2>
 
-<div class="data">AX: <span id="ax">0</span></div>
-<div class="data">AY: <span id="ay">0</span></div>
-<div class="data">AZ: <span id="az">0</span></div>
+<div class="buttons">
+<button class="start" onclick="startSensor()">Start</button>
+<button class="stop" onclick="stopSensor()">Stop</button>
+</div>
+
+<div class="sensor-grid">
+
+<div class="sensor-box">
+<div class="label">AX</div>
+<div class="value" id="ax">0</div>
+</div>
+
+<div class="sensor-box">
+<div class="label">AY</div>
+<div class="value" id="ay">0</div>
+</div>
+
+<div class="sensor-box">
+<div class="label">AZ</div>
+<div class="value" id="az">0</div>
+</div>
+
+</div>
+
+<canvas id="chart" height="150"></canvas>
 
 <div id="status">Menunggu sensor...</div>
 
+</div>
+
 <script>
 
-const API_URL = "https://script.google.com/macros/s/AKfycbwzUheSSP7Ht8vf4vLjOhqP7tFTQ-Q5UL8KvDnTrQ9JEYhQ8kgrvLH7s82wNeiNJZ8/exec?path=telemetry/batch";
+const API_URL="https://script.google.com/macros/s/AKfycbwzUheSSP7Ht8vf4vLjOhqP7tFTQ-Q5UL8KvDnTrQ9JEYhQ8kgrvLH7s82wNeiNJZ8/exec?path=telemetry/batch";
+const DEVICE_ID="HP-01";
 
-const DEVICE_ID = "HP-01";
+let batch=[];
+let sensorActive=false;
 
-let batch = [];
+const ctx=document.getElementById("chart");
+
+const chart=new Chart(ctx,{
+type:"line",
+data:{
+labels:[],
+datasets:[
+{
+label:"AX",
+borderColor:"#e74c3c",
+data:[],
+fill:false
+},
+{
+label:"AY",
+borderColor:"#2ecc71",
+data:[],
+fill:false
+},
+{
+label:"AZ",
+borderColor:"#3498db",
+data:[],
+fill:false
+}
+]
+},
+options:{
+animation:false,
+responsive:true,
+scales:{
+y:{
+suggestedMin:-20,
+suggestedMax:20
+}
+}
+}
+});
 
 function startSensor(){
 
-if (typeof DeviceMotionEvent.requestPermission === 'function') {
+if(sensorActive) return;
+
+if(typeof DeviceMotionEvent.requestPermission==="function"){
 
 DeviceMotionEvent.requestPermission()
-.then(permissionState => {
+.then(permissionState=>{
 
-if (permissionState === 'granted') {
-window.addEventListener("devicemotion", handleMotion);
+if(permissionState==="granted"){
+window.addEventListener("devicemotion",handleMotion);
+sensorActive=true;
 }
 
 })
 .catch(console.error);
 
-} else {
+}else{
 
-window.addEventListener("devicemotion", handleMotion);
+window.addEventListener("devicemotion",handleMotion);
+sensorActive=true;
 
 }
 
-document.getElementById("status").innerText = "Sensor aktif...";
+document.getElementById("status").innerText="Sensor aktif...";
+}
+
+function stopSensor(){
+
+window.removeEventListener("devicemotion",handleMotion);
+sensorActive=false;
+
+document.getElementById("status").innerText="Sensor dihentikan";
 }
 
 function handleMotion(event){
 
-let ax = event.accelerationIncludingGravity.x || 0;
-let ay = event.accelerationIncludingGravity.y || 0;
-let az = event.accelerationIncludingGravity.z || 0;
+let ax=event.accelerationIncludingGravity.x||0;
+let ay=event.accelerationIncludingGravity.y||0;
+let az=event.accelerationIncludingGravity.z||0;
 
-document.getElementById("ax").innerText = ax.toFixed(2);
-document.getElementById("ay").innerText = ay.toFixed(2);
-document.getElementById("az").innerText = az.toFixed(2);
+document.getElementById("ax").innerText=ax.toFixed(2);
+document.getElementById("ay").innerText=ay.toFixed(2);
+document.getElementById("az").innerText=az.toFixed(2);
 
-let data = {
-ax: ax,
-ay: ay,
-az: az,
-ts: Date.now()
+updateChart(ax,ay,az);
+
+let data={
+ax:ax,
+ay:ay,
+az:az,
+ts:Date.now()
 };
 
 batch.push(data);
 
-if(batch.length >= 10){
-
+if(batch.length>=10){
 sendBatch();
+}
 
 }
 
+function updateChart(ax,ay,az){
+
+const time=new Date().toLocaleTimeString();
+
+chart.data.labels.push(time);
+chart.data.datasets[0].data.push(ax);
+chart.data.datasets[1].data.push(ay);
+chart.data.datasets[2].data.push(az);
+
+if(chart.data.labels.length>20){
+chart.data.labels.shift();
+chart.data.datasets.forEach(d=>d.data.shift());
+}
+
+chart.update();
 }
 
 function sendBatch(){
 
-let payload = {
-device_id: DEVICE_ID,
-readings: batch
+let payload={
+device_id:DEVICE_ID,
+readings:batch
 };
 
 fetch(API_URL,{
@@ -129,22 +288,12 @@ headers:{
 },
 body:JSON.stringify(payload)
 })
-.then(res=>res.json())
-.then(res=>{
-
-document.getElementById("status").innerText =
-"Batch terkirim: " + batch.length + " data";
-
-batch = [];
-
+.then(()=>{
+document.getElementById("status").innerText="Batch terkirim: "+batch.length+" data";
+batch=[];
 })
-.catch(err=>{
-
-document.getElementById("status").innerText =
-"Gagal kirim data";
-
-console.log(err);
-
+.catch(()=>{
+document.getElementById("status").innerText="Gagal kirim data";
 });
 
 }
