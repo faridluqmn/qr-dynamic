@@ -15,20 +15,26 @@ font-family:"Segoe UI", Arial, sans-serif;
 
 body{
 margin:0;
-height:100vh;
+min-height:100vh;
 display:flex;
 justify-content:center;
 align-items:center;
 background:linear-gradient(135deg,#1e3c72,#2a5298);
+padding:20px;
 }
+
+/* container responsive */
 
 .container{
 background:white;
-width:420px;
+width:100%;
+max-width:520px;
 padding:25px;
 border-radius:14px;
 box-shadow:0 20px 40px rgba(0,0,0,0.25);
 }
+
+/* title */
 
 h2{
 text-align:center;
@@ -36,19 +42,23 @@ margin-bottom:15px;
 color:#2a5298;
 }
 
+/* input */
+
 input{
 width:100%;
-padding:10px;
+padding:12px;
 border-radius:8px;
 border:1px solid #ccc;
-margin-bottom:10px;
-font-size:14px;
+margin-bottom:15px;
+font-size:15px;
 }
+
+/* button group */
 
 .buttons{
 display:flex;
 gap:10px;
-margin-bottom:15px;
+margin-bottom:20px;
 }
 
 button{
@@ -79,42 +89,70 @@ color:white;
 background:#c0392b;
 }
 
+/* sensor grid */
+
 .sensor-grid{
 display:grid;
 grid-template-columns:repeat(3,1fr);
-gap:10px;
-margin-bottom:15px;
+gap:12px;
+margin-bottom:20px;
 }
+
+/* sensor box */
 
 .sensor-box{
 background:#f2f5fa;
-padding:12px;
-border-radius:8px;
+padding:18px 10px;
+border-radius:10px;
 text-align:center;
 }
 
 .label{
 font-size:13px;
 color:#777;
+margin-bottom:5px;
 }
 
 .value{
-font-size:20px;
+font-size:22px;
 font-weight:bold;
 color:#2a5298;
 }
 
+/* chart */
+
+.chart-wrapper{
+width:100%;
+height:220px;
+}
+
+/* status */
+
 #status{
-margin-top:10px;
-padding:8px;
+margin-top:15px;
+padding:10px;
 border-radius:8px;
 background:#eef3ff;
 font-size:14px;
 text-align:center;
 }
 
-canvas{
-margin-top:10px;
+/* mobile improvements */
+
+@media (max-width:480px){
+
+.container{
+padding:20px;
+}
+
+.value{
+font-size:20px;
+}
+
+.chart-wrapper{
+height:200px;
+}
+
 }
 
 </style>
@@ -152,7 +190,9 @@ margin-top:10px;
 
 </div>
 
-<canvas id="chart" height="150"></canvas>
+<div class="chart-wrapper">
+<canvas id="chart"></canvas>
+</div>
 
 <div id="status">Menunggu sensor...</div>
 
@@ -176,25 +216,29 @@ datasets:[
 label:"AX",
 borderColor:"#e74c3c",
 data:[],
-fill:false
+fill:false,
+tension:0.3
 },
 {
 label:"AY",
 borderColor:"#2ecc71",
 data:[],
-fill:false
+fill:false,
+tension:0.3
 },
 {
 label:"AZ",
 borderColor:"#3498db",
 data:[],
-fill:false
+fill:false,
+tension:0.3
 }
 ]
 },
 options:{
-animation:false,
 responsive:true,
+maintainAspectRatio:false,
+animation:false,
 scales:{
 y:{
 suggestedMin:-20,
