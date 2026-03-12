@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Accelerometer Telemetry</title>
+
+<style>
+body{
+font-family: Arial;
+text-align:center;
+padding:30px;
+background:#f5f5f5;
+}
+
+h1{
+color:#333;
+}
+
+.data{
+font-size:20px;
+margin:10px;
+}
+
+button{
+padding:12px 25px;
+font-size:18px;
+border:none;
+border-radius:8px;
+background:#2b7cff;
+color:white;
+cursor:pointer;
+}
+
+button:hover{
+background:#1a5fd1;
+}
+
+#status{
+margin-top:20px;
+font-size:16px;
+color:green;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>Accelerometer Telemetry</h1>
+
+<button onclick="startSensor()">Start Sensor</button>
+
+<div class="data">AX: <span id="ax">0</span></div>
+<div class="data">AY: <span id="ay">0</span></div>
+<div class="data">AZ: <span id="az">0</span></div>
+
+<div id="status">Menunggu sensor...</div>
+
+<script>
+
+const API_URL = "https://script.google.com/macros/s/AKfycbwzUheSSP7Ht8vf4vLjOhqP7tFTQ-Q5UL8KvDnTrQ9JEYhQ8kgrvLH7s82wNeiNJZ8/exec?path=telemetry/batch";
+
+const DEVICE_ID = "HP-01";
+
+let batch = [];
+
+function startSensor(){
+
+if (typeof DeviceMotionEvent.requestPermission === 'function') {
+
+DeviceMotionEvent.requestPermission()
+.then(permissionState => {
+
+if (permissionState === 'granted') {
+window.addEventListener("devicemotion", handleMotion);
+}
+
+})
+.catch(console.error);
+
+} else {
+
+window.addEventListener("devicemotion", handleMotion);
+
+}
+
+document.getElementById("status").innerText = "Sensor aktif...";
+}
+
+function handleMotion(event){
+
+let ax = event.accelerationIncludingGravity.x || 0;
+let ay = event.accelerationIncludingGravity.y || 0;
+let az = event.accelerationIncludingGravity.z || 0;
+
+document.getElementById("ax").innerText = ax.toFixed(2);
+document.getElementById("ay").innerText = ay.toFixed(2);
+document.getElementById("az").innerText = az.toFixed(2);
+
+let data = {
+ax: ax,
+ay: ay,
+az: az,
+ts: Date.now()
+};
+
+batch.push(data);
+
+if(batch.length >= 10){
+
+sendBatch();
+
+}
+
+}
+
+function sendBatch(){
+
+let payload = {
+device_id: DEVICE_ID,
+readings: batch
+};
+
+fetch(API_URL,{
+method:"POST",
+mode:"no-cors",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify(payload)
+})
+.then(res=>res.json())
+.then(res=>{
+
+document.getElementById("status").innerText =
+"Batch terkirim: " + batch.length + " data";
+
+batch = [];
+
+})
+.catch(err=>{
+
+document.getElementById("status").innerText =
+"Gagal kirim data";
+
+console.log(err);
+
+});
+
+}
+
+</script>
+
+</body>
+</html>
