@@ -36,6 +36,15 @@ margin-bottom:15px;
 color:#2a5298;
 }
 
+input{
+width:100%;
+padding:10px;
+border-radius:8px;
+border:1px solid #ccc;
+margin-bottom:10px;
+font-size:14px;
+}
+
 .buttons{
 display:flex;
 gap:10px;
@@ -117,6 +126,8 @@ margin-top:10px;
 
 <h2>Accelerometer Telemetry</h2>
 
+<input id="device_id" placeholder="Masukkan Device ID (contoh: HP-01)" />
+
 <div class="buttons">
 <button class="start" onclick="startSensor()">Start</button>
 <button class="stop" onclick="stopSensor()">Stop</button>
@@ -150,7 +161,6 @@ margin-top:10px;
 <script>
 
 const API_URL="https://script.google.com/macros/s/AKfycbwzUheSSP7Ht8vf4vLjOhqP7tFTQ-Q5UL8KvDnTrQ9JEYhQ8kgrvLH7s82wNeiNJZ8/exec?path=telemetry/batch";
-const DEVICE_ID="HP-01";
 
 let batch=[];
 let sensorActive=false;
@@ -196,6 +206,13 @@ suggestedMax:20
 
 function startSensor(){
 
+const DEVICE_ID=document.getElementById("device_id").value.trim();
+
+if(!DEVICE_ID){
+alert("Isi Device ID terlebih dahulu");
+return;
+}
+
 if(sensorActive) return;
 
 if(typeof DeviceMotionEvent.requestPermission==="function"){
@@ -227,6 +244,7 @@ window.removeEventListener("devicemotion",handleMotion);
 sensorActive=false;
 
 document.getElementById("status").innerText="Sensor dihentikan";
+
 }
 
 function handleMotion(event){
@@ -271,9 +289,12 @@ chart.data.datasets.forEach(d=>d.data.shift());
 }
 
 chart.update();
+
 }
 
 function sendBatch(){
+
+const DEVICE_ID=document.getElementById("device_id").value.trim();
 
 let payload={
 device_id:DEVICE_ID,
@@ -289,11 +310,18 @@ headers:{
 body:JSON.stringify(payload)
 })
 .then(()=>{
-document.getElementById("status").innerText="Batch terkirim: "+batch.length+" data";
+
+document.getElementById("status").innerText=
+"Batch terkirim: "+batch.length+" data";
+
 batch=[];
+
 })
 .catch(()=>{
-document.getElementById("status").innerText="Gagal kirim data";
+
+document.getElementById("status").innerText=
+"Gagal kirim data";
+
 });
 
 }
