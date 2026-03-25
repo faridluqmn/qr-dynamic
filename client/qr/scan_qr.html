@@ -5,15 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Scan QR Presensi</title>
 
-<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/html5-qrcode"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
 body{
 font-family:'Poppins',sans-serif;
-background:linear-gradient(135deg,#4facfe,#00f2fe);
-min-height:100vh;
+background:linear-gradient(135deg,#667eea,#764ba2);
 margin:0;
+height:100vh;
 display:flex;
 justify-content:center;
 align-items:center;
@@ -28,7 +28,7 @@ text-align:center;
 box-shadow:0 10px 25px rgba(0,0,0,0.2);
 }
 
-h2{margin-bottom:15px;}
+h2{margin-bottom:10px;}
 
 #reader{
 width:100%;
@@ -43,27 +43,40 @@ border-radius:8px;
 border:1px solid #ccc;
 }
 
-button{
-margin-top:15px;
-padding:12px;
-width:100%;
-border:none;
-border-radius:10px;
-background:#4facfe;
-color:white;
-font-size:16px;
-cursor:pointer;
-}
-
-button:hover{background:#00c6ff;}
-
 .status{
 margin-top:15px;
 font-weight:bold;
 }
 
-.success{color:green;}
-.error{color:red;}
+.popup{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.5);
+display:none;
+justify-content:center;
+align-items:center;
+}
+
+.popup-box{
+background:white;
+padding:25px;
+border-radius:15px;
+text-align:center;
+width:280px;
+}
+
+.popup-box button{
+margin-top:15px;
+padding:10px 20px;
+border:none;
+background:#667eea;
+color:white;
+border-radius:8px;
+cursor:pointer;
+}
 </style>
 </head>
 
@@ -71,43 +84,68 @@ font-weight:bold;
 
 <div class="container">
 <h2>Scan QR Presensi</h2>
+<p>Arahkan kamera ke QR</p>
 
 <input type="text" id="userId" placeholder="Masukkan NIM">
-<input type="text" id="deviceId" placeholder="Device ID (contoh: HP-01)">
-<input type="text" id="baseUrl" value="https://script.google.com/macros/s/AKfycbwzUheSSP7Ht8vf4vLjOhqP7tFTQ-Q5UL8KvDnTrQ9JEYhQ8kgrvLH7s82wNeiNJZ8/exec">
 
 <div id="reader"></div>
 
-<div class="status" id="statusText">Menunggu scan QR...</div>
+<div class="status" id="statusText">Menunggu scan...</div>
+</div>
+
+<div class="popup" id="popup">
+<div class="popup-box">
+<h3 id="popupTitle"></h3>
+<p id="popupMsg"></p>
+<button onclick="closePopup()">OK</button>
+</div>
 </div>
 
 <script>
 
-let scanned = false;
+const BASE_URL = "https://script.google.com/macros/s/AKfycbwzUheSSP7Ht8vf4vLjOhqP7tFTQ-Q5UL8KvDnTrQ9JEYhQ8kgrvLH7s82wNeiNJZ8/exec";
 
-function onScanSuccess(decodedText) {
-if(scanned) return;
-scanned = true;
+let scanner;
+let deviceId = getDeviceId();
 
-document.getElementById("statusText").innerText="QR terdeteksi, mengambil lokasi...";
-checkin(decodedText);
+function getDeviceId(){
+let id = localStorage.getItem("device_id");
+if(!id){
+id = "HP-" + Math.floor(Math.random()*100000);
+localStorage.setItem("device_id",id);
+}
+return id;
 }
 
-const html5QrcodeScanner = new Html5QrcodeScanner(
-"reader", { fps: 10, qrbox: 250 });
+function showPopup(title,msg){
+document.getElementById("popupTitle").innerText=title;
+document.getElementById("popupMsg").innerText=msg;
+document.getElementById("popup").style.display="flex";
+}
 
-html5QrcodeScanner.render(onScanSuccess);
+function closePopup(){
+document.getElementById("popup").style.display="none";
+}
 
-function checkin(token){
+function startScanner(){
+scanner = new Html5Qrcode("reader");
+scanner.start(
+{ facingMode: "environment" },
+{ fps: 10, qrbox: 250 },
+onScanSuccess
+);
+}
 
-const userId=document.getElementById("userId").value;
-const deviceId=document.getElementById("deviceId").value;
-const baseUrl=document.getElementById("baseUrl").value;
+async function onScanSuccess(decodedText){
 
-if(!userId || !deviceId){
-document.getElementById("statusText").innerText="Isi NIM dan Device ID dulu!";
+const userId = document.getElementById("userId").value;
+
+if(!userId){
+showPopup("Error","Masukkan NIM terlebih dahulu");
 return;
 }
+
+document.getElementById("statusText").innerText="Mengirim presensi...";
 
 navigator.geolocation.getCurrentPosition(async (pos)=>{
 
@@ -115,14 +153,15 @@ const lat = pos.coords.latitude;
 const lng = pos.coords.longitude;
 
 const params = new URLSearchParams();
-params.append("qr_token",token);
+params.append("qr_token",decodedText);
 params.append("user_id",userId);
 params.append("device_id",deviceId);
 params.append("lat",lat);
 params.append("lng",lng);
 
 try{
-const res = await fetch(baseUrl+"?path=presence/checkin",{
+
+const res = await fetch(BASE_URL+"?path=presence/checkin",{
 method:"POST",
 headers:{"Content-Type":"application/x-www-form-urlencoded"},
 body:params
@@ -131,22 +170,22 @@ body:params
 const data = await res.json();
 
 if(data.ok){
-document.getElementById("statusText").innerText="Presensi berhasil!";
-document.getElementById("statusText").className="status success";
+showPopup("Berhasil","Presensi berhasil direkam");
+scanner.stop();
 }
 else{
-document.getElementById("statusText").innerText=data.error;
-document.getElementById("statusText").className="status error";
+showPopup("Gagal",data.error);
 }
 
 }catch(e){
-document.getElementById("statusText").innerText="Gagal koneksi ke server";
-document.getElementById("statusText").className="status error";
+showPopup("Error","Tidak bisa koneksi ke server");
 }
 
 });
 
 }
+
+startScanner();
 
 </script>
 
