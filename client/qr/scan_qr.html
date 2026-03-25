@@ -1,193 +1,980 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Scan QR Presensi</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan QR Presensi - CyberCampus</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<script src="https://unpkg.com/html5-qrcode"></script>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+        :root {
+            --primary: #1e40af;
+            --primary-light: #3b82f6;
+            --primary-dark: #1e3a8a;
+            --secondary: #0f172a;
+            --accent: #f59e0b;
+            --background: #f1f5f9;
+            --surface: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
 
-<style>
-body{
-font-family:'Poppins',sans-serif;
-background:linear-gradient(135deg,#667eea,#764ba2);
-margin:0;
-height:100vh;
-display:flex;
-justify-content:center;
-align-items:center;
-}
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--background);
+            min-height: 100vh;
+            display: flex;
+            color: var(--text-primary);
+        }
 
-.container{
-background:white;
-padding:25px;
-border-radius:15px;
-width:350px;
-text-align:center;
-box-shadow:0 10px 25px rgba(0,0,0,0.2);
-}
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--secondary);
+            min-height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
 
-h2{margin-bottom:10px;}
+        .sidebar-header {
+            padding: 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
 
-#reader{
-width:100%;
-margin-top:15px;
-}
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-input{
-width:100%;
-padding:10px;
-margin-top:10px;
-border-radius:8px;
-border:1px solid #ccc;
-}
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-.status{
-margin-top:15px;
-font-weight:bold;
-}
+        .logo-icon svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
 
-.popup{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100%;
-background:rgba(0,0,0,0.5);
-display:none;
-justify-content:center;
-align-items:center;
-}
+        .logo-text {
+            color: white;
+            font-size: 20px;
+            font-weight: 700;
+        }
 
-.popup-box{
-background:white;
-padding:25px;
-border-radius:15px;
-text-align:center;
-width:280px;
-}
+        .logo-subtitle {
+            color: var(--text-secondary);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
 
-.popup-box button{
-margin-top:15px;
-padding:10px 20px;
-border:none;
-background:#667eea;
-color:white;
-border-radius:8px;
-cursor:pointer;
-}
-</style>
+        .sidebar-menu {
+            padding: 16px 12px;
+            flex: 1;
+        }
+
+        .menu-label {
+            color: var(--text-secondary);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 12px 16px 8px;
+            font-weight: 600;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: 10px;
+            margin-bottom: 4px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .menu-item:hover {
+            background: rgba(255,255,255,0.05);
+            color: white;
+        }
+
+        .menu-item.active {
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .menu-item svg {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .menu-item span {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .menu-badge {
+            margin-left: auto;
+            background: var(--danger);
+            color: white;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+
+        .user-avatar {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, var(--success), #059669);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .user-role {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: var(--surface);
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .breadcrumb a {
+            color: var(--text-secondary);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--primary);
+        }
+
+        .breadcrumb span {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .header-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: var(--background);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .header-icon:hover {
+            background: var(--primary-light);
+            color: white;
+        }
+
+        .header-icon svg {
+            width: 20px;
+            height: 20px;
+            color: var(--text-secondary);
+        }
+
+        .header-icon:hover svg {
+            color: white;
+        }
+
+        /* Content Area */
+        .content {
+            padding: 32px;
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 15px;
+        }
+
+        /* Scanner Grid */
+        .scanner-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        /* Card */
+        .card {
+            background: var(--surface);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .card-body {
+            padding: 24px;
+        }
+
+        /* Form */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            color: var(--text-primary);
+            background: var(--surface);
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Scanner */
+        #reader {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        #reader video {
+            border-radius: 12px;
+        }
+
+        .scanner-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px;
+            background: var(--background);
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .scanner-status.success {
+            background: #d1fae5;
+            color: var(--success);
+        }
+
+        .scanner-status.error {
+            background: #fee2e2;
+            color: var(--danger);
+        }
+
+        .scanner-status.loading {
+            background: #dbeafe;
+            color: var(--primary);
+        }
+
+        .scanner-status svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Device Info */
+        .device-info {
+            margin-top: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .info-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .info-value.mono {
+            font-family: monospace;
+            background: var(--background);
+            padding: 6px 12px;
+            border-radius: 6px;
+        }
+
+        /* Instructions */
+        .instructions {
+            margin-top: 20px;
+        }
+
+        .instruction-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .instruction-list {
+            list-style: none;
+        }
+
+        .instruction-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 0;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .instruction-list li .step {
+            width: 24px;
+            height: 24px;
+            background: var(--primary-light);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        /* Popup */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .popup-overlay.active {
+            display: flex;
+        }
+
+        .popup-box {
+            background: var(--surface);
+            padding: 32px;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 360px;
+            width: 90%;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .popup-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .popup-icon.success {
+            background: #d1fae5;
+            color: var(--success);
+        }
+
+        .popup-icon.error {
+            background: #fee2e2;
+            color: var(--danger);
+        }
+
+        .popup-icon svg {
+            width: 32px;
+            height: 32px;
+        }
+
+        .popup-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .popup-message {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .popup-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 32px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            color: white;
+            transition: all 0.2s ease;
+        }
+
+        .popup-btn:hover {
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .scanner-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .header {
+                padding: 16px 20px;
+            }
+            .content {
+                padding: 20px;
+            }
+        }
+
+        /* Mobile menu toggle */
+        .mobile-toggle {
+            display: none;
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: var(--background);
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: none;
+        }
+
+        .mobile-toggle svg {
+            width: 24px;
+            height: 24px;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 992px) {
+            .mobile-toggle {
+                display: flex;
+            }
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+    </style>
 </head>
-
 <body>
+    <!-- Overlay for mobile -->
+    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 
-<div class="container">
-<h2>Scan QR Presensi</h2>
-<p>Arahkan kamera ke QR</p>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="logo-text">CyberCampus</div>
+                    <div class="logo-subtitle">Learning Platform</div>
+                </div>
+            </div>
+        </div>
 
-<input type="text" id="userId" placeholder="Masukkan NIM">
+        <nav class="sidebar-menu">
+            <div class="menu-label">Menu Utama</div>
+            <a href="dashboard.html" class="menu-item">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                <span>Dashboard</span>
+            </a>
+            <a href="generate.html" class="menu-item">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                </svg>
+                <span>Generate QR Presensi</span>
+            </a>
+            <a href="monitoring.html" class="menu-item">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                <span>Monitoring Presensi</span>
+                <span class="menu-badge">12</span>
+            </a>
 
-<div id="reader"></div>
+            <div class="menu-label">Device</div>
+            <a href="devices.html" class="menu-item">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                </svg>
+                <span>Monitoring Device</span>
+            </a>
+            <a href="accelerometer.html" class="menu-item">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                <span>Accelerometer</span>
+            </a>
 
-<div class="status" id="statusText">Menunggu scan...</div>
-</div>
+            <div class="menu-label">Mahasiswa</div>
+            <a href="scan-qr.html" class="menu-item active">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span>Scan QR Presensi</span>
+            </a>
+        </nav>
 
-<div class="popup" id="popup">
-<div class="popup-box">
-<h3 id="popupTitle"></h3>
-<p id="popupMsg"></p>
-<button onclick="closePopup()">OK</button>
-</div>
-</div>
+        <div class="sidebar-footer">
+            <div class="user-profile">
+                <div class="user-avatar">MH</div>
+                <div class="user-info">
+                    <div class="user-name">Mahasiswa</div>
+                    <div class="user-role">Informatika</div>
+                </div>
+            </div>
+        </div>
+    </aside>
 
-<script>
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="header">
+            <div class="header-left">
+                <button class="mobile-toggle" onclick="toggleSidebar()">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+                <div class="breadcrumb">
+                    <a href="dashboard.html">Dashboard</a>
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                    <span>Scan QR Presensi</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                </div>
+            </div>
+        </header>
 
-const BASE_URL = "https://script.google.com/macros/s/AKfycbwzUheSSP7Ht8vf4vLjOhqP7tFTQ-Q5UL8KvDnTrQ9JEYhQ8kgrvLH7s82wNeiNJZ8/exec";
+        <div class="content">
+            <div class="page-header">
+                <h1 class="page-title">Scan QR Presensi</h1>
+                <p class="page-subtitle">Arahkan kamera ke QR Code untuk melakukan presensi</p>
+            </div>
 
-let scanner;
-let deviceId = getDeviceId();
+            <div class="scanner-grid">
+                <!-- Scanner Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Scanner QR Code</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label class="form-label">NIM (Nomor Induk Mahasiswa)</label>
+                            <input type="text" class="form-input" id="userId" placeholder="Masukkan NIM Anda">
+                        </div>
 
-function getDeviceId(){
-let id = localStorage.getItem("device_id");
-if(!id){
-id = "HP-" + Math.floor(Math.random()*100000);
-localStorage.setItem("device_id",id);
-}
-return id;
-}
+                        <div id="reader"></div>
 
-function showPopup(title,msg){
-document.getElementById("popupTitle").innerText=title;
-document.getElementById("popupMsg").innerText=msg;
-document.getElementById("popup").style.display="flex";
-}
+                        <div class="scanner-status" id="statusText">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            Menunggu scan QR Code...
+                        </div>
+                    </div>
+                </div>
 
-function closePopup(){
-document.getElementById("popup").style.display="none";
-}
+                <!-- Info Card -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Informasi Device</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="device-info">
+                            <div class="info-item">
+                                <span class="info-label">Device ID</span>
+                                <span class="info-value mono" id="deviceIdDisplay">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Browser</span>
+                                <span class="info-value" id="browserInfo">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Platform</span>
+                                <span class="info-value" id="platformInfo">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Status Lokasi</span>
+                                <span class="info-value" id="locationStatus">Belum diizinkan</span>
+                            </div>
+                        </div>
 
-function startScanner(){
-scanner = new Html5Qrcode("reader");
-scanner.start(
-{ facingMode: "environment" },
-{ fps: 10, qrbox: 250 },
-onScanSuccess
-);
-}
+                        <div class="instructions">
+                            <h4 class="instruction-title">Cara Melakukan Presensi:</h4>
+                            <ul class="instruction-list">
+                                <li>
+                                    <span class="step">1</span>
+                                    Masukkan NIM Anda di kolom yang disediakan
+                                </li>
+                                <li>
+                                    <span class="step">2</span>
+                                    Izinkan akses kamera dan lokasi jika diminta
+                                </li>
+                                <li>
+                                    <span class="step">3</span>
+                                    Arahkan kamera ke QR Code yang ditampilkan dosen
+                                </li>
+                                <li>
+                                    <span class="step">4</span>
+                                    Tunggu hingga presensi berhasil direkam
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
 
-async function onScanSuccess(decodedText){
+    <!-- Popup -->
+    <div class="popup-overlay" id="popup">
+        <div class="popup-box">
+            <div class="popup-icon" id="popupIcon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+            <h3 class="popup-title" id="popupTitle">Berhasil</h3>
+            <p class="popup-message" id="popupMsg">Presensi berhasil direkam</p>
+            <button class="popup-btn" onclick="closePopup()">OK</button>
+        </div>
+    </div>
 
-const userId = document.getElementById("userId").value;
+    <script>
+        const BASE_URL = "https://script.google.com/macros/s/AKfycbwzUheSSP7Ht8vf4vLjOhqP7tFTQ-Q5UL8KvDnTrQ9JEYhQ8kgrvLH7s82wNeiNJZ8/exec";
 
-if(!userId){
-showPopup("Error","Masukkan NIM terlebih dahulu");
-return;
-}
+        let scanner;
+        let deviceId = getDeviceId();
 
-document.getElementById("statusText").innerText="Mengirim presensi...";
+        // Display device info
+        document.getElementById("deviceIdDisplay").innerText = deviceId;
+        document.getElementById("browserInfo").innerText = getBrowserInfo();
+        document.getElementById("platformInfo").innerText = navigator.platform || "Unknown";
 
-navigator.geolocation.getCurrentPosition(async (pos)=>{
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+            document.getElementById('overlay').classList.toggle('active');
+        }
 
-const lat = pos.coords.latitude;
-const lng = pos.coords.longitude;
+        function getDeviceId() {
+            let id = localStorage.getItem("device_id");
+            if (!id) {
+                id = "HP-" + Math.floor(Math.random() * 100000);
+                localStorage.setItem("device_id", id);
+            }
+            return id;
+        }
 
-const params = new URLSearchParams();
-params.append("qr_token",decodedText);
-params.append("user_id",userId);
-params.append("device_id",deviceId);
-params.append("lat",lat);
-params.append("lng",lng);
+        function getBrowserInfo() {
+            const ua = navigator.userAgent;
+            if (ua.includes("Chrome")) return "Chrome";
+            if (ua.includes("Firefox")) return "Firefox";
+            if (ua.includes("Safari")) return "Safari";
+            if (ua.includes("Edge")) return "Edge";
+            return "Unknown";
+        }
 
-try{
+        function showPopup(title, msg, isSuccess = true) {
+            document.getElementById("popupTitle").innerText = title;
+            document.getElementById("popupMsg").innerText = msg;
+            
+            const iconDiv = document.getElementById("popupIcon");
+            if (isSuccess) {
+                iconDiv.className = "popup-icon success";
+                iconDiv.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+            } else {
+                iconDiv.className = "popup-icon error";
+                iconDiv.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
+            }
+            
+            document.getElementById("popup").classList.add("active");
+        }
 
-const res = await fetch(BASE_URL+"?path=presence/checkin",{
-method:"POST",
-headers:{"Content-Type":"application/x-www-form-urlencoded"},
-body:params
-});
+        function closePopup() {
+            document.getElementById("popup").classList.remove("active");
+        }
 
-const data = await res.json();
+        function updateStatus(message, type = "default") {
+            const statusEl = document.getElementById("statusText");
+            let icon = '';
+            
+            switch(type) {
+                case "success":
+                    statusEl.className = "scanner-status success";
+                    icon = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+                    break;
+                case "error":
+                    statusEl.className = "scanner-status error";
+                    icon = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
+                    break;
+                case "loading":
+                    statusEl.className = "scanner-status loading";
+                    icon = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>';
+                    break;
+                default:
+                    statusEl.className = "scanner-status";
+                    icon = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>';
+            }
+            
+            statusEl.innerHTML = icon + " " + message;
+        }
 
-if(data.ok){
-showPopup("Berhasil","Presensi berhasil direkam");
-scanner.stop();
-}
-else{
-showPopup("Gagal",data.error);
-}
+        function startScanner() {
+            scanner = new Html5Qrcode("reader");
+            scanner.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                onScanSuccess
+            ).catch(err => {
+                updateStatus("Gagal mengakses kamera: " + err, "error");
+            });
+        }
 
-}catch(e){
-showPopup("Error","Tidak bisa koneksi ke server");
-}
+        async function onScanSuccess(decodedText) {
+            const userId = document.getElementById("userId").value;
 
-});
+            if (!userId) {
+                showPopup("Error", "Masukkan NIM terlebih dahulu", false);
+                return;
+            }
 
-}
+            updateStatus("Mengirim presensi...", "loading");
 
-startScanner();
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                document.getElementById("locationStatus").innerText = "Diizinkan";
+                
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
 
-</script>
+                const params = new URLSearchParams();
+                params.append("qr_token", decodedText);
+                params.append("user_id", userId);
+                params.append("device_id", deviceId);
+                params.append("lat", lat);
+                params.append("lng", lng);
 
+                try {
+                    const res = await fetch(BASE_URL + "?path=presence/checkin", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                        body: params
+                    });
+
+                    const data = await res.json();
+
+                    if (data.ok) {
+                        showPopup("Berhasil", "Presensi berhasil direkam", true);
+                        updateStatus("Presensi berhasil!", "success");
+                        scanner.stop();
+                    } else {
+                        showPopup("Gagal", data.error, false);
+                        updateStatus("Presensi gagal", "error");
+                    }
+
+                } catch (e) {
+                    showPopup("Error", "Tidak bisa koneksi ke server", false);
+                    updateStatus("Koneksi error", "error");
+                }
+
+            }, (err) => {
+                document.getElementById("locationStatus").innerText = "Ditolak";
+                showPopup("Error", "Izinkan akses lokasi untuk presensi", false);
+                updateStatus("Akses lokasi ditolak", "error");
+            });
+        }
+
+        // Start scanner on page load
+        startScanner();
+    </script>
 </body>
 </html>
