@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Device Telemetry Monitoring</title>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
@@ -109,7 +110,7 @@ async function loadDashboard(){
 
 try{
 
-/* ===== LOAD TABLE ===== */
+/* ================= TABLE ================= */
 const resLatest=await fetch(API_LATEST);
 const latest=await resLatest.json();
 
@@ -151,7 +152,7 @@ tbody.innerHTML+=row;
 
 }
 
-/* ===== LOAD CHART HISTORY ===== */
+/* ================= CHART HISTORY ================= */
 const resHistory=await fetch(API_HISTORY);
 const history=await resHistory.json();
 
@@ -171,6 +172,7 @@ console.log(e);
 
 }
 
+/* ================= CHART ================= */
 function updateChart(deviceId, readings){
 
 const id="chart-"+deviceId;
@@ -202,23 +204,35 @@ scales:{y:{suggestedMin:-20,suggestedMax:20}}
 }
 });
 
-}
-
-const chart=charts[id];
-
-chart.data.labels=[];
-chart.data.datasets[0].data=[];
-chart.data.datasets[1].data=[];
-chart.data.datasets[2].data=[];
-
+/* Load history saat pertama kali */
 readings.slice(-20).forEach(r=>{
-chart.data.labels.push("");
-chart.data.datasets[0].data.push(r.ax);
-chart.data.datasets[1].data.push(r.ay);
-chart.data.datasets[2].data.push(r.az);
+charts[id].data.labels.push("");
+charts[id].data.datasets[0].data.push(r.ax);
+charts[id].data.datasets[1].data.push(r.ay);
+charts[id].data.datasets[2].data.push(r.az);
 });
 
-chart.update();
+charts[id].update();
+
+}
+else{
+
+/* Update live */
+const last = readings[readings.length-1];
+
+charts[id].data.labels.push("");
+charts[id].data.datasets[0].data.push(last.ax);
+charts[id].data.datasets[1].data.push(last.ay);
+charts[id].data.datasets[2].data.push(last.az);
+
+if(charts[id].data.labels.length>20){
+charts[id].data.labels.shift();
+charts[id].data.datasets.forEach(d=>d.data.shift());
+}
+
+charts[id].update();
+
+}
 
 }
 
