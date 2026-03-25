@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Dosen - QR Presensi</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+font-family:'Poppins',sans-serif;
+background:linear-gradient(135deg,#667eea,#764ba2);
+min-height:100vh;
+padding:20px;
+color:#333;
+}
+.container{max-width:700px;margin:auto;}
+.header{
+background:white;
+padding:30px;
+border-radius:15px;
+text-align:center;
+margin-bottom:20px;
+box-shadow:0 10px 30px rgba(0,0,0,0.1);
+}
+.card{
+background:white;
+padding:30px;
+border-radius:15px;
+margin-bottom:20px;
+box-shadow:0 10px 30px rgba(0,0,0,0.1);
+}
+input,select{
+width:100%;
+padding:12px;
+margin-top:8px;
+border-radius:8px;
+border:1px solid #ddd;
+}
+.btn{
+margin-top:20px;
+width:100%;
+padding:15px;
+border:none;
+border-radius:10px;
+background:#667eea;
+color:white;
+font-size:16px;
+cursor:pointer;
+}
+.btn:hover{background:#5a67d8;}
+.qr-box{
+text-align:center;
+margin-top:20px;
+padding:20px;
+background:#f7f7f7;
+border-radius:15px;
+}
+.token{
+margin-top:10px;
+font-family:monospace;
+background:#eee;
+padding:10px;
+border-radius:8px;
+}
+.timer{
+margin-top:10px;
+font-weight:bold;
+color:#e53e3e;
+}
+.status{
+margin-top:10px;
+font-weight:bold;
+color:green;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="header">
+<h2>Dashboard Dosen</h2>
+<p>Generate QR Presensi Dinamis</p>
+</div>
+
+<div class="card">
+<label>Mata Kuliah</label>
+<input type="text" id="courseId" value="CLOUD-101">
+
+<label>Sesi</label>
+<input type="text" id="sessionId" value="SESI-01">
+
+<label>Durasi Presensi</label>
+<select id="duration">
+<option value="2">2 Menit</option>
+<option value="5" selected>5 Menit</option>
+<option value="10">10 Menit</option>
+</select>
+
+<label>Backend URL</label>
+<input type="text" id="baseUrl" value="https://script.google.com/macros/s/AKfycbwzUheSSP7Ht8vf4vLjOhqP7tFTQ-Q5UL8KvDnTrQ9JEYhQ8kgrvLH7s82wNeiNJZ8/exec">
+
+<button class="btn" onclick="startSession()">Mulai Sesi Presensi</button>
+
+<div class="qr-box" id="qrBox" style="display:none;">
+<h3>QR Presensi Aktif</h3>
+<img id="qrImg" src="" width="250">
+<div class="token" id="tokenText"></div>
+<div class="timer" id="countdown"></div>
+<div class="status" id="qrStatus"></div>
+</div>
+
+</div>
+</div>
+
+<script>
+
+let qrInterval;
+let countdownInterval;
+let sessionEndTime;
+
+async function generateQR(){
+const baseUrl=document.getElementById("baseUrl").value;
+const courseId=document.getElementById("courseId").value;
+const sessionId=document.getElementById("sessionId").value;
+
+const url=`${baseUrl}?path=presence/qr/generate&course_id=${courseId}&session_id=${sessionId}`;
+
+const res=await fetch(url);
+const data=await res.json();
+
+if(data.ok){
+const token=data.data.qr_token;
+
+document.getElementById("qrImg").src=
+"https://api.qrserver.com/v1/create-qr-code/?size=250x250&data="+token;
+
+document.getElementById("tokenText").innerText="Token: "+token;
+document.getElementById("qrStatus").innerText="QR diperbarui: "+new Date().toLocaleTimeString();
+}
+}
+
+function startSession(){
+
+const duration=parseInt(document.getElementById("duration").value);
+sessionEndTime=Date.now()+duration*60*1000;
+
+document.getElementById("qrBox").style.display="block";
+
+generateQR();
+
+qrInterval=setInterval(()=>{
+if(Date.now()>sessionEndTime){
+clearInterval(qrInterval);
+clearInterval(countdownInterval);
+document.getElementById("qrStatus").innerText="Sesi berakhir";
+return;
+}
+generateQR();
+},10000);
+
+countdownInterval=setInterval(()=>{
+const remaining=sessionEndTime-Date.now();
+if(remaining<=0){
+document.getElementById("countdown").innerText="Waktu habis";
+return;
+}
+const m=Math.floor(remaining/60000);
+const s=Math.floor((remaining%60000)/1000);
+document.getElementById("countdown").innerText=
+"Sisa waktu: "+m+"m "+s+"s";
+},1000);
+
+}
+
+</script>
+
+</body>
+</html>
