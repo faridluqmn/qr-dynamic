@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live Location Mahasiswa</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <style>
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<script>
+const sessionId = "SESS-001"; // Ganti sesuai sesi
+const API_URL = "https://script.google.com/macros/s/AKfycbwzUheSSP7Ht8vf4vLjOhqP7tFTQ-Q5UL8KvDnTrQ9JEYhQ8kgrvLH7s82wNeiNJZ8/exec?path=presence/list&session_id=" + sessionId;
+
+let map = L.map('map').setView([-6.9175, 107.6191], 15);
+let markers = {};
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap'
+}).addTo(map);
+
+async function loadLocations(){
+    try{
+        const res = await fetch(API_URL);
+        const result = await res.json();
+
+        if(!result.ok) return;
+
+        const data = result.data;
+
+        data.forEach(user => {
+
+            if(!user.lat || !user.lng) return;
+
+            // Jika marker sudah ada → update posisi
+            if(markers[user.user_id]){
+                markers[user.user_id].setLatLng([user.lat, user.lng]);
+            } 
+            // Jika belum ada → buat marker baru
+            else{
+                const marker = L.marker([user.lat, user.lng])
+                    .addTo(map)
+                    .bindPopup("Mahasiswa: " + user.user_id);
+
+                markers[user.user_id] = marker;
+            }
+
+        });
+
+    }catch(err){
+        console.log(err);
+    }
+}
+
+// Update tiap 5 detik
+setInterval(loadLocations, 5000);
+loadLocations();
+</script>
+
+</body>
+</html>
