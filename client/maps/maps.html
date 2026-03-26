@@ -55,10 +55,11 @@
 <div id="map"></div>
 
 <script>
-const BASE_URL = "https://script.google.com/macros/s/AKfycbxxxx/exec";
+const BASE_URL = "https://script.google.com/macros/s/AKfycbwzUheSSP7Ht8vf4vLjOhqP7tFTQ-Q5UL8KvDnTrQ9JEYhQ8kgrvLH7s82wNeiNJZ8/exec?path=maps/get";
 
 let map = L.map('map').setView([-6.9175, 107.6191], 15);
 let markers = {};
+let markerGroup = L.featureGroup().addTo(map);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: 'OpenStreetMap'
@@ -72,21 +73,22 @@ async function loadLocations() {
 
     document.getElementById("total").innerText = result.data.length;
 
+    markerGroup.clearLayers();
+
     result.data.forEach(user => {
+        const marker = L.marker([user.lat, user.lng])
+            .bindPopup("<b>NIM:</b> " + user.user_id);
 
-        if (markers[user.user_id]) {
-            markers[user.user_id].setLatLng([user.lat, user.lng]);
-        } else {
-            const marker = L.marker([user.lat, user.lng])
-                .addTo(map)
-                .bindPopup("<b>NIM:</b> " + user.user_id);
-
-            markers[user.user_id] = marker;
-        }
-
+        markerGroup.addLayer(marker);
     });
+
+    // AUTO FOKUS KE SEMUA MARKER
+    if (result.data.length > 0) {
+        map.fitBounds(markerGroup.getBounds(), { padding: [50, 50] });
+    }
 }
 
+// Refresh tiap 3 detik
 setInterval(loadLocations, 3000);
 loadLocations();
 </script>
