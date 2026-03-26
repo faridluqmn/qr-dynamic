@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Share Lokasi - CyberCampus</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1e40af;
+            --primary-light: #3b82f6;
+            --background: #f1f5f9;
+            --surface: #ffffff;
+            --text: #0f172a;
+            --text-secondary: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--background);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .card {
+            background: var(--surface);
+            padding: 30px;
+            border-radius: 16px;
+            width: 350px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        .title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .btn-stop {
+            background: var(--danger);
+        }
+
+        .status {
+            margin-top: 20px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        .online { background: var(--success); }
+        .offline { background: var(--danger); }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="title">Share Lokasi</div>
+    <div class="subtitle">CyberCampus Attendance System</div>
+
+    <input type="text" id="userId" placeholder="Masukkan NIM"
+           style="width:100%; padding:12px; border-radius:8px; border:1px solid #ddd;">
+
+    <button class="btn" onclick="startTracking()">Mulai Share Lokasi</button>
+    <button class="btn btn-stop" onclick="stopTracking()">Stop</button>
+
+    <div class="status">
+        <span class="dot offline" id="dot"></span>
+        <span id="statusText">Belum aktif</span>
+    </div>
+
+    <div class="status" id="coords"></div>
+</div>
+
+<script>
+const BASE_URL = "https://script.google.com/macros/s/AKfycbxxxx/exec";
+let watchId = null;
+
+function startTracking() {
+    const userId = document.getElementById("userId").value;
+    if (!userId) {
+        alert("Masukkan NIM dulu");
+        return;
+    }
+
+    watchId = navigator.geolocation.watchPosition(position => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+
+        fetch(`${BASE_URL}?path=liveloc/send&user_id=${userId}&lat=${lat}&lng=${lng}`);
+
+        document.getElementById("coords").innerText = lat + ", " + lng;
+        document.getElementById("statusText").innerText = "Lokasi sedang dibagikan";
+        document.getElementById("dot").className = "dot online";
+    });
+}
+
+function stopTracking() {
+    if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+        document.getElementById("statusText").innerText = "Share lokasi dihentikan";
+        document.getElementById("dot").className = "dot offline";
+    }
+}
+</script>
+
+</body>
+</html>

@@ -1,69 +1,93 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Live Location Mahasiswa</title>
+    <title>Monitoring Lokasi Mahasiswa</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
     <style>
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: #f1f5f9;
+        }
+
+        .header {
+            background: white;
+            padding: 16px 24px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .info-box {
+            background: white;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-size: 14px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
         #map {
-            height: 100vh;
-            width: 100%;
+            height: calc(100vh - 70px);
         }
     </style>
 </head>
 <body>
 
+<div class="header">
+    <div class="title">Monitoring Lokasi Mahasiswa</div>
+    <div class="info-box">
+        Total Mahasiswa Online: <span id="total">0</span>
+    </div>
+</div>
+
 <div id="map"></div>
 
 <script>
-const sessionId = "SESS-001"; // Ganti sesuai sesi
-const API_URL = "https://script.google.com/macros/s/AKfycbwzUheSSP7Ht8vf4vLjOhqP7tFTQ-Q5UL8KvDnTrQ9JEYhQ8kgrvLH7s82wNeiNJZ8/exec?path=presence/list&session_id=" + sessionId;
+const BASE_URL = "https://script.google.com/macros/s/AKfycbxxxx/exec";
 
 let map = L.map('map').setView([-6.9175, 107.6191], 15);
 let markers = {};
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap'
+    attribution: 'OpenStreetMap'
 }).addTo(map);
 
-async function loadLocations(){
-    try{
-        const res = await fetch(API_URL);
-        const result = await res.json();
+async function loadLocations() {
+    const res = await fetch(`${BASE_URL}?path=liveloc/get`);
+    const result = await res.json();
 
-        if(!result.ok) return;
+    if (!result.ok) return;
 
-        const data = result.data;
+    document.getElementById("total").innerText = result.data.length;
 
-        data.forEach(user => {
+    result.data.forEach(user => {
 
-            if(!user.lat || !user.lng) return;
+        if (markers[user.user_id]) {
+            markers[user.user_id].setLatLng([user.lat, user.lng]);
+        } else {
+            const marker = L.marker([user.lat, user.lng])
+                .addTo(map)
+                .bindPopup("<b>NIM:</b> " + user.user_id);
 
-            // Jika marker sudah ada → update posisi
-            if(markers[user.user_id]){
-                markers[user.user_id].setLatLng([user.lat, user.lng]);
-            } 
-            // Jika belum ada → buat marker baru
-            else{
-                const marker = L.marker([user.lat, user.lng])
-                    .addTo(map)
-                    .bindPopup("Mahasiswa: " + user.user_id);
+            markers[user.user_id] = marker;
+        }
 
-                markers[user.user_id] = marker;
-            }
-
-        });
-
-    }catch(err){
-        console.log(err);
-    }
+    });
 }
 
-// Update tiap 5 detik
-setInterval(loadLocations, 5000);
+setInterval(loadLocations, 3000);
 loadLocations();
 </script>
 
