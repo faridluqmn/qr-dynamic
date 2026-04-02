@@ -103,7 +103,7 @@
 </div>
 
 <script>
-const BASE_URL = "https://script.google.com/macros/s/AKfycbwzUheSSP7Ht8vf4vLjOhqP7tFTQ-Q5UL8KvDnTrQ9JEYhQ8kgrvLH7s82wNeiNJZ8/exec?path=maps/send";
+const BASE_URL = "https://script.google.com/macros/s/AKfycbwzUheSSP7Ht8vf4vLjOhqP7tFTQ-Q5UL8KvDnTrQ9JEYhQ8kgrvLH7s82wNeiNJZ8/exec";
 let watchId = null;
 
 function startTracking() {
@@ -113,15 +113,33 @@ function startTracking() {
         return;
     }
 
+    if (!navigator.geolocation) {
+        alert("GPS tidak didukung di device ini");
+        return;
+    }
+
     watchId = navigator.geolocation.watchPosition(position => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
+        const acc = position.coords.accuracy;
 
-        fetch(`${BASE_URL}?path=liveloc/send&user_id=${userId}&lat=${lat}&lng=${lng}`);
+        fetch(`${BASE_URL}?path=maps/send&user_id=${userId}&lat=${lat}&lng=${lng}`, {
+            method: "GET",
+            mode: "no-cors"
+        });
 
-        document.getElementById("coords").innerText = lat + ", " + lng;
+        document.getElementById("coords").innerText =
+            "Lat: " + lat + " | Lng: " + lng + " | Acc: " + acc + "m";
+
         document.getElementById("statusText").innerText = "Lokasi sedang dibagikan";
         document.getElementById("dot").className = "dot online";
+
+    }, error => {
+        alert("GPS error: " + error.message);
+    }, {
+        enableHighAccuracy: true,
+        maximumAge: 0,
+        timeout: 5000
     });
 }
 
