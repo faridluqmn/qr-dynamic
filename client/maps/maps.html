@@ -25,11 +25,6 @@
             box-sizing: border-box;
         }
 
-        #sidebar h3 {
-            margin-top: 0;
-            font-size: 18px;
-        }
-
         #studentList {
             list-style: none;
             padding: 0;
@@ -49,7 +44,7 @@
             height: 100vh;
         }
 
-        .status-dot {
+        .dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
@@ -57,8 +52,9 @@
             margin-right: 6px;
         }
 
-        .online { background: #10b981; }
-        .moving { background: #ef4444; }
+        .online { background: #22c55e; }
+        .idle { background: #f59e0b; }
+        .offline { background: #ef4444; }
     </style>
 </head>
 <body>
@@ -79,27 +75,28 @@ let markerGroup = L.featureGroup().addTo(map);
 let lastPositions = {};
 let paths = {};
 
-// TILE MAP
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: 'OpenStreetMap'
-}).addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-// RADIUS KELAS (ubah sesuai lokasi kampus/kelas)
-const classLatLng = [-6.9175, 107.6191];
-
-L.circle(classLatLng, {
+// Radius kelas
+L.circle([-6.9175, 107.6191], {
     radius: 50,
     color: 'blue',
-    fillColor: '#3b82f6',
-    fillOpacity: 0.2
+    fillOpacity: 0.1
 }).addTo(map);
 
-// ICON
-function getIcon(color) {
+// Icon marker
+function getIcon(status) {
+    let url = "";
+
+    if (status === "online")
+        url = "https://cdn-icons-png.flaticon.com/512/149/149059.png";
+    else if (status === "idle")
+        url = "https://cdn-icons-png.flaticon.com/512/854/854878.png";
+    else
+        url = "https://cdn-icons-png.flaticon.com/512/1828/1828843.png";
+
     return L.icon({
-        iconUrl: color === "red"
-            ? "https://cdn-icons-png.flaticon.com/512/684/684908.png"
-            : "https://cdn-icons-png.flaticon.com/512/149/149059.png",
+        iconUrl: url,
         iconSize: [35, 35],
         iconAnchor: [17, 35]
     });
@@ -108,28 +105,29 @@ function getIcon(color) {
 async function loadLocations() {
     const res = await fetch(`${BASE_URL}?path=maps/get`);
     const result = await res.json();
-
     if (!result.ok) return;
 
     markerGroup.clearLayers();
-    document.getElementById("total").innerText = result.data.length;
 
     const list = document.getElementById("studentList");
     list.innerHTML = "";
 
+    let onlineCount = 0;
+    const now = Date.now();
+
     result.data.forEach(user => {
 
-        let color = "green";
+        const diff = (now - user.ts) / 1000;
+        let status = "offline";
 
-        if (lastPositions[user.user_id]) {
-            const last = lastPositions[user.user_id];
-
-            if (last.lat != user.lat || last.lng != user.lng) {
-                color = "red"; // bergerak
-            }
+        if (diff < 10) {
+            status = "online";
+            onlineCount++;
+        } else if (diff < 30) {
+            status = "idle";
+        } else {
+            status = "offline";
         }
-
-        lastPositions[user.user_id] = { lat: user.lat, lng: user.lng };
 
         // SIMPAN JEJAK
         if (!paths[user.user_id]) {
@@ -137,34 +135,31 @@ async function loadLocations() {
         }
         paths[user.user_id].push([user.lat, user.lng]);
 
-        // GARIS JEJAK
         L.polyline(paths[user.user_id], { color: 'blue' }).addTo(map);
 
-        const marker = L.marker([user.lat, user.lng], { icon: getIcon(color) })
+        const marker = L.marker([user.lat, user.lng], { icon: getIcon(status) })
             .bindPopup(`
-                <b>NIM:</b> ${user.user_id} <br>
-                <b>Lat:</b> ${user.lat} <br>
-                <b>Lng:</b> ${user.lng} <br>
+                <b>NIM:</b> ${user.user_id}<br>
+                <b>Status:</b> ${status}<br>
                 <b>Update:</b> ${new Date(user.ts).toLocaleTimeString()}
             `);
 
         markerGroup.addLayer(marker);
 
-        // SIDEBAR LIST
+        // Sidebar
         const li = document.createElement("li");
-        li.innerHTML = `
-            <span class="status-dot ${color === 'red' ? 'moving' : 'online'}"></span>
-            ${user.user_id}
-        `;
+        li.innerHTML = `<span class="dot ${status}"></span> ${user.user_id}`;
         list.appendChild(li);
     });
 
-    if (result.data.length > 0) {
+    document.getElementById("total").innerText = onlineCount;
+
+    if (markerGroup.getLayers().length > 0) {
         map.fitBounds(markerGroup.getBounds(), { padding: [50, 50] });
     }
 }
 
-// REFRESH 3 DETIK
+// Refresh tiap 3 detik
 setInterval(loadLocations, 3000);
 loadLocations();
 </script>
