@@ -831,150 +831,133 @@
     </div>
 
     <script>
-        const BASE_URL = "https://script.google.com/macros/s/AKfycbwzUheSSP7Ht8vf4vLjOhqP7tFTQ-Q5UL8KvDnTrQ9JEYhQ8kgrvLH7s82wNeiNJZ8/exec";
+const BASE_URL = "https://script.google.com/macros/s/AKfycbwzUheSSP7Ht8vf4vLjOhqP7tFTQ-Q5UL8KvDnTrQ9JEYhQ8kgrvLH7s82wNeiNJZ8/exec";
 
-        let scanner;
-        let deviceId = getDeviceId();
+let scanner;
+let deviceId = getDeviceId();
+let alreadyScanned = false;
 
-        // Display device info
-        document.getElementById("deviceIdDisplay").innerText = deviceId;
-        document.getElementById("browserInfo").innerText = getBrowserInfo();
-        document.getElementById("platformInfo").innerText = navigator.platform || "Unknown";
+// Display device info
+document.getElementById("deviceIdDisplay").innerText = deviceId;
+document.getElementById("browserInfo").innerText = getBrowserInfo();
+document.getElementById("platformInfo").innerText = navigator.platform || "Unknown";
 
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('active');
-            document.getElementById('overlay').classList.toggle('active');
-        }
+function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('active');
+    document.getElementById('overlay').classList.toggle('active');
+}
 
-        function getDeviceId() {
-            let id = localStorage.getItem("device_id");
-            if (!id) {
-                id = "HP-" + Math.floor(Math.random() * 100000);
-                localStorage.setItem("device_id", id);
-            }
-            return id;
-        }
+function getDeviceId() {
+    let id = localStorage.getItem("device_id");
+    if (!id) {
+        id = "HP-" + Math.floor(Math.random() * 100000);
+        localStorage.setItem("device_id", id);
+    }
+    return id;
+}
 
-        function getBrowserInfo() {
-            const ua = navigator.userAgent;
-            if (ua.includes("Chrome")) return "Chrome";
-            if (ua.includes("Firefox")) return "Firefox";
-            if (ua.includes("Safari")) return "Safari";
-            if (ua.includes("Edge")) return "Edge";
-            return "Unknown";
-        }
+function getBrowserInfo() {
+    const ua = navigator.userAgent;
+    if (ua.includes("Chrome")) return "Chrome";
+    if (ua.includes("Firefox")) return "Firefox";
+    if (ua.includes("Safari")) return "Safari";
+    if (ua.includes("Edge")) return "Edge";
+    return "Unknown";
+}
 
-        function showPopup(title, msg, isSuccess = true) {
-            document.getElementById("popupTitle").innerText = title;
-            document.getElementById("popupMsg").innerText = msg;
-            
-            const iconDiv = document.getElementById("popupIcon");
-            if (isSuccess) {
-                iconDiv.className = "popup-icon success";
-                iconDiv.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+function showPopup(title, msg, isSuccess = true) {
+    document.getElementById("popupTitle").innerText = title;
+    document.getElementById("popupMsg").innerText = msg;
+    
+    const iconDiv = document.getElementById("popupIcon");
+    if (isSuccess) {
+        iconDiv.className = "popup-icon success";
+    } else {
+        iconDiv.className = "popup-icon error";
+    }
+    
+    document.getElementById("popup").classList.add("active");
+}
+
+function closePopup() {
+    document.getElementById("popup").classList.remove("active");
+}
+
+function updateStatus(message, type = "default") {
+    const statusEl = document.getElementById("statusText");
+    statusEl.innerHTML = message;
+}
+
+function startScanner() {
+    scanner = new Html5Qrcode("reader");
+    scanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        onScanSuccess
+    );
+}
+
+async function onScanSuccess(decodedText) {
+
+    if (alreadyScanned) return; // CEGAH SCAN BERKALI-KALI
+    alreadyScanned = true;
+
+    const userId = document.getElementById("userId").value;
+
+    if (!userId) {
+        showPopup("Error", "Masukkan NIM terlebih dahulu", false);
+        alreadyScanned = false;
+        return;
+    }
+
+    updateStatus("Mengirim presensi...");
+
+    navigator.geolocation.getCurrentPosition(async (pos) => {
+
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+
+        const params = new URLSearchParams();
+        params.append("qr_token", decodedText);
+        params.append("user_id", userId);
+        params.append("device_id", deviceId);
+        params.append("lat", lat);
+        params.append("lng", lng);
+
+        try {
+            const res = await fetch(BASE_URL + "?path=presence/checkin", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: params
+            });
+
+            const data = await res.json();
+
+            if (data.ok) {
+                showPopup("Berhasil", "Presensi berhasil direkam", true);
+                updateStatus("Presensi berhasil");
+                scanner.stop(); // STOP SCANNER SETELAH BERHASIL
             } else {
-                iconDiv.className = "popup-icon error";
-                iconDiv.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
-            }
-            
-            document.getElementById("popup").classList.add("active");
-        }
-
-        function closePopup() {
-            document.getElementById("popup").classList.remove("active");
-        }
-
-        function updateStatus(message, type = "default") {
-            const statusEl = document.getElementById("statusText");
-            let icon = '';
-            
-            switch(type) {
-                case "success":
-                    statusEl.className = "scanner-status success";
-                    icon = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
-                    break;
-                case "error":
-                    statusEl.className = "scanner-status error";
-                    icon = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>';
-                    break;
-                case "loading":
-                    statusEl.className = "scanner-status loading";
-                    icon = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>';
-                    break;
-                default:
-                    statusEl.className = "scanner-status";
-                    icon = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>';
-            }
-            
-            statusEl.innerHTML = icon + " " + message;
-        }
-
-        function startScanner() {
-            scanner = new Html5Qrcode("reader");
-            scanner.start(
-                { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 250, height: 250 } },
-                onScanSuccess
-            ).catch(err => {
-                updateStatus("Gagal mengakses kamera: " + err, "error");
-            });
-        }
-
-        async function onScanSuccess(decodedText) {
-            const userId = document.getElementById("userId").value;
-
-            if (!userId) {
-                showPopup("Error", "Masukkan NIM terlebih dahulu", false);
-                return;
+                showPopup("Gagal", data.error, false);
+                updateStatus("Presensi gagal");
+                scanner.stop(); // STOP JUGA BIAR TIDAK SCAN TERUS
             }
 
-            updateStatus("Mengirim presensi...", "loading");
-
-            navigator.geolocation.getCurrentPosition(async (pos) => {
-                document.getElementById("locationStatus").innerText = "Diizinkan";
-                
-                const lat = pos.coords.latitude;
-                const lng = pos.coords.longitude;
-
-                const params = new URLSearchParams();
-                params.append("qr_token", decodedText);
-                params.append("user_id", userId);
-                params.append("device_id", deviceId);
-                params.append("lat", lat);
-                params.append("lng", lng);
-
-                try {
-                    const res = await fetch(BASE_URL + "?path=presence/checkin", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                        body: params
-                    });
-
-                    const data = await res.json();
-
-                    if (data.ok) {
-                        showPopup("Berhasil", "Presensi berhasil direkam", true);
-                        updateStatus("Presensi berhasil!", "success");
-                        scanner.stop();
-                    } else {
-                        showPopup("Gagal", data.error, false);
-                        updateStatus("Presensi gagal", "error");
-                    }
-
-                } catch (e) {
-                    showPopup("Error", "Tidak bisa koneksi ke server", false);
-                    updateStatus("Koneksi error", "error");
-                }
-
-            }, (err) => {
-                document.getElementById("locationStatus").innerText = "Ditolak";
-                showPopup("Error", "Izinkan akses lokasi untuk presensi", false);
-                updateStatus("Akses lokasi ditolak", "error");
-            });
+        } catch (e) {
+            showPopup("Error", "Tidak bisa koneksi ke server", false);
+            updateStatus("Koneksi error");
+            scanner.stop();
         }
 
-        // Start scanner on page load
-        startScanner();
-    </script>
+    }, () => {
+        showPopup("Error", "Izinkan akses lokasi", false);
+        scanner.stop();
+    });
+}
+
+// Start scanner
+startScanner();
+</script>
+
 </body>
 </html>
