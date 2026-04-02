@@ -13,82 +13,158 @@
         body {
             margin: 0;
             font-family: 'Inter', sans-serif;
-            background: #f1f5f9;
-        }
-
-        .header {
-            background: white;
-            padding: 16px 24px;
-            border-bottom: 1px solid #e2e8f0;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
 
-        .title {
-            font-size: 20px;
-            font-weight: 700;
+        #sidebar {
+            width: 260px;
+            background: #0f172a;
+            color: white;
+            height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
-        .info-box {
-            background: white;
-            padding: 12px 18px;
-            border-radius: 10px;
+        #sidebar h3 {
+            margin-top: 0;
+            font-size: 18px;
+        }
+
+        #studentList {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+
+        #studentList li {
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            margin-bottom: 10px;
             font-size: 14px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
 
         #map {
-            height: calc(100vh - 70px);
+            flex: 1;
+            height: 100vh;
         }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        .online { background: #10b981; }
+        .moving { background: #ef4444; }
     </style>
 </head>
 <body>
 
-<div class="header">
-    <div class="title">Monitoring Lokasi Mahasiswa</div>
-    <div class="info-box">
-        Total Mahasiswa Online: <span id="total">0</span>
-    </div>
+<div id="sidebar">
+    <h3>Monitoring Mahasiswa</h3>
+    <div>Total Online: <b id="total">0</b></div>
+    <ul id="studentList"></ul>
 </div>
 
 <div id="map"></div>
 
 <script>
-const BASE_URL = "https://script.google.com/macros/s/AKfycbwzUheSSP7Ht8vf4vLjOhqP7tFTQ-Q5UL8KvDnTrQ9JEYhQ8kgrvLH7s82wNeiNJZ8/exec?path=maps/get";
+const BASE_URL = "https://script.google.com/macros/s/AKfycbwzUheSSP7Ht8vf4vLjOhqP7tFTQ-Q5UL8KvDnTrQ9JEYhQ8kgrvLH7s82wNeiNJZ8/exec";
 
 let map = L.map('map').setView([-6.9175, 107.6191], 15);
-let markers = {};
 let markerGroup = L.featureGroup().addTo(map);
+let lastPositions = {};
+let paths = {};
 
+// TILE MAP
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: 'OpenStreetMap'
 }).addTo(map);
 
+// RADIUS KELAS (ubah sesuai lokasi kampus/kelas)
+const classLatLng = [-6.9175, 107.6191];
+
+L.circle(classLatLng, {
+    radius: 50,
+    color: 'blue',
+    fillColor: '#3b82f6',
+    fillOpacity: 0.2
+}).addTo(map);
+
+// ICON
+function getIcon(color) {
+    return L.icon({
+        iconUrl: color === "red"
+            ? "https://cdn-icons-png.flaticon.com/512/684/684908.png"
+            : "https://cdn-icons-png.flaticon.com/512/149/149059.png",
+        iconSize: [35, 35],
+        iconAnchor: [17, 35]
+    });
+}
+
 async function loadLocations() {
-    const res = await fetch(`${BASE_URL}?path=liveloc/get`);
+    const res = await fetch(`${BASE_URL}?path=maps/get`);
     const result = await res.json();
 
     if (!result.ok) return;
 
+    markerGroup.clearLayers();
     document.getElementById("total").innerText = result.data.length;
 
-    markerGroup.clearLayers();
+    const list = document.getElementById("studentList");
+    list.innerHTML = "";
 
     result.data.forEach(user => {
-        const marker = L.marker([user.lat, user.lng])
-            .bindPopup("<b>NIM:</b> " + user.user_id);
+
+        let color = "green";
+
+        if (lastPositions[user.user_id]) {
+            const last = lastPositions[user.user_id];
+
+            if (last.lat != user.lat || last.lng != user.lng) {
+                color = "red"; // bergerak
+            }
+        }
+
+        lastPositions[user.user_id] = { lat: user.lat, lng: user.lng };
+
+        // SIMPAN JEJAK
+        if (!paths[user.user_id]) {
+            paths[user.user_id] = [];
+        }
+        paths[user.user_id].push([user.lat, user.lng]);
+
+        // GARIS JEJAK
+        L.polyline(paths[user.user_id], { color: 'blue' }).addTo(map);
+
+        const marker = L.marker([user.lat, user.lng], { icon: getIcon(color) })
+            .bindPopup(`
+                <b>NIM:</b> ${user.user_id} <br>
+                <b>Lat:</b> ${user.lat} <br>
+                <b>Lng:</b> ${user.lng} <br>
+                <b>Update:</b> ${new Date(user.ts).toLocaleTimeString()}
+            `);
 
         markerGroup.addLayer(marker);
+
+        // SIDEBAR LIST
+        const li = document.createElement("li");
+        li.innerHTML = `
+            <span class="status-dot ${color === 'red' ? 'moving' : 'online'}"></span>
+            ${user.user_id}
+        `;
+        list.appendChild(li);
     });
 
-    // AUTO FOKUS KE SEMUA MARKER
     if (result.data.length > 0) {
         map.fitBounds(markerGroup.getBounds(), { padding: [50, 50] });
     }
 }
 
-// Refresh tiap 3 detik
+// REFRESH 3 DETIK
 setInterval(loadLocations, 3000);
 loadLocations();
 </script>
