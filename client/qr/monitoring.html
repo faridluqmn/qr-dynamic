@@ -6,1284 +6,210 @@
     <title>Monitoring Presensi - CyberCampus</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }   
-
-        :root {
-            --primary: #1e40af;
-            --primary-light: #3b82f6;
-            --primary-dark: #1e3a8a;
-            --secondary: #0f172a;
-            --accent: #f59e0b;
-            --background: #f1f5f9;
-            --surface: #ffffff;
-            --text-primary: #0f172a;
-            --text-secondary: #64748b;
-            --border: #e2e8f0;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-        }
-
         body {
             font-family: 'Inter', sans-serif;
-            background: var(--background);
-            min-height: 100vh;
-            display: flex;
-            color: var(--text-primary);
+            background: #f1f5f9;
+            margin: 0;
         }
 
-        /* Sidebar */
-        .sidebar {
-            width: 280px;
-            background: var(--secondary);
-            min-height: 100vh;
-            position: fixed;
-            left: 0;
-            top: 0;
-            display: flex;
-            flex-direction: column;
-            transition: all 0.3s ease;
-            z-index: 1000;
-        }
-
-        .sidebar-header {
-            padding: 24px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--primary-light), var(--primary));
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .logo-icon svg {
-            width: 24px;
-            height: 24px;
-            fill: white;
-        }
-
-        .logo-text {
-            color: white;
-            font-size: 20px;
-            font-weight: 700;
-        }
-
-        .logo-subtitle {
-            color: var(--text-secondary);
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .sidebar-menu {
-            padding: 16px 12px;
-            flex: 1;
-        }
-
-        .menu-label {
-            color: var(--text-secondary);
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 12px 16px 8px;
-            font-weight: 600;
-        }
-
-        .menu-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 14px 16px;
-            color: #94a3b8;
-            text-decoration: none;
-            border-radius: 10px;
-            margin-bottom: 4px;
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-
-        .menu-item:hover {
-            background: rgba(255,255,255,0.05);
-            color: white;
-        }
-
-        .menu-item.active {
-            background: linear-gradient(135deg, var(--primary-light), var(--primary));
-            color: white;
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-        }
-
-        .menu-item svg {
-            width: 20px;
-            height: 20px;
-            flex-shrink: 0;
-        }
-
-        .menu-item span {
-            font-size: 14px;
-            font-weight: 500;
-        }
-
-        .menu-badge {
-            margin-left: auto;
-            background: var(--danger);
-            color: white;
-            font-size: 11px;
-            padding: 2px 8px;
-            border-radius: 20px;
-            font-weight: 600;
-        }
-
-        .sidebar-footer {
-            padding: 16px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 10px;
-        }
-
-        .user-avatar {
-            width: 42px;
-            height: 42px;
-            background: linear-gradient(135deg, var(--accent), #d97706);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 16px;
-        }
-
-        .user-info {
-            flex: 1;
-        }
-
-        .user-name {
-            color: white;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .user-role {
-            color: var(--text-secondary);
-            font-size: 12px;
-        }
-
-        /* Main Content */
-        .main-content {
-            flex: 1;
-            margin-left: 280px;
-            min-height: 100vh;
-        }
-
-        /* Header */
         .header {
-            background: var(--surface);
-            padding: 16px 32px;
+            background: white;
+            padding: 20px 30px;
+            border-bottom: 1px solid #e2e8f0;
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .header-left {
-            display: flex;
             align-items: center;
-            gap: 24px;
         }
 
-        .breadcrumb {
+        .title {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .stats {
             display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
+            gap: 20px;
+            padding: 20px 30px;
         }
 
-        .breadcrumb a {
-            color: var(--text-secondary);
-            text-decoration: none;
+        .stat-box {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            width: 200px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
 
-        .breadcrumb a:hover {
-            color: var(--primary);
-        }
-
-        .breadcrumb span {
-            color: var(--text-primary);
-            font-weight: 500;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .header-icon {
-            width: 42px;
-            height: 42px;
-            border-radius: 10px;
-            background: var(--background);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            position: relative;
-            transition: all 0.2s ease;
-        }
-
-        .header-icon:hover {
-            background: var(--primary-light);
-            color: white;
-        }
-
-        .header-icon svg {
-            width: 20px;
-            height: 20px;
-            color: var(--text-secondary);
-        }
-
-        .header-icon:hover svg {
-            color: white;
-        }
-
-        .notification-dot {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 8px;
-            height: 8px;
-            background: var(--danger);
-            border-radius: 50%;
-            border: 2px solid var(--surface);
-        }
-
-        /* Content Area */
-        .content {
-            padding: 32px;
-        }
-
-        .page-header {
-            margin-bottom: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .page-title {
+        .stat-number {
             font-size: 28px;
             font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-        }
-
-        .page-subtitle {
-            color: var(--text-secondary);
-            font-size: 15px;
-        }
-
-        /* Stats Cards */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 24px;
-            margin-bottom: 32px;
-        }
-
-        .stat-card {
-            background: var(--surface);
-            padding: 24px;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 24px rgba(0,0,0,0.08);
-        }
-
-        .stat-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-        }
-
-        .stat-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .stat-icon.blue {
-            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-            color: var(--primary);
-        }
-
-        .stat-icon.green {
-            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
-            color: var(--success);
-        }
-
-        .stat-icon.amber {
-            background: linear-gradient(135deg, #fef3c7, #fde68a);
-            color: var(--warning);
-        }
-
-        .stat-icon.red {
-            background: linear-gradient(135deg, #fee2e2, #fecaca);
-            color: var(--danger);
-        }
-
-        .stat-icon svg {
-            width: 24px;
-            height: 24px;
-        }
-
-        .stat-value {
-            font-size: 32px;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 4px;
         }
 
         .stat-label {
-            color: var(--text-secondary);
             font-size: 14px;
+            color: gray;
         }
 
-        /* Filters */
-        .filters-bar {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-        }
-
-        .search-box {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: var(--surface);
-            padding: 12px 16px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            width: 320px;
-        }
-
-        .search-box svg {
-            width: 18px;
-            height: 18px;
-            color: var(--text-secondary);
-        }
-
-        .search-box input {
-            border: none;
-            background: transparent;
-            outline: none;
-            width: 100%;
-            font-size: 14px;
-            color: var(--text-primary);
-            font-family: inherit;
-        }
-
-        .search-box input::placeholder {
-            color: var(--text-secondary);
-        }
-
-        .filter-select {
-            padding: 12px 16px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            font-size: 14px;
-            font-family: inherit;
-            color: var(--text-primary);
-            background: var(--surface);
-            cursor: pointer;
-            min-width: 160px;
-        }
-
-        .filter-select:focus {
-            outline: none;
-            border-color: var(--primary-light);
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            font-family: inherit;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary-light), var(--primary));
-            color: white;
-        }
-
-        .btn-primary:hover {
-            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .btn-outline {
-            background: var(--surface);
-            color: var(--text-primary);
-            border: 1px solid var(--border);
-        }
-
-        .btn-outline:hover {
-            border-color: var(--primary-light);
-            color: var(--primary);
-        }
-
-        .btn svg {
-            width: 18px;
-            height: 18px;
-        }
-
-        /* Table Card */
-        .card {
-            background: var(--surface);
-            border-radius: 16px;
-            border: 1px solid var(--border);
+        .table-container {
+            background: white;
+            margin: 20px 30px;
+            border-radius: 12px;
             overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
 
-        .card-header {
-            padding: 20px 24px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .card-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        /* Data Table */
-        .data-table {
+        table {
             width: 100%;
             border-collapse: collapse;
         }
 
-        .data-table th,
-        .data-table td {
-            padding: 16px 24px;
+        th {
+            background: #f8fafc;
+            padding: 14px;
             text-align: left;
-            border-bottom: 1px solid var(--border);
+            font-size: 13px;
+            color: gray;
         }
 
-        .data-table th {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            background: var(--background);
-        }
-
-        .data-table td {
+        td {
+            padding: 14px;
+            border-top: 1px solid #f1f5f9;
             font-size: 14px;
         }
 
-        .data-table tr:last-child td {
-            border-bottom: none;
+        tr:hover {
+            background: #f9fafb;
         }
 
-        .data-table tr:hover td {
-            background: var(--background);
-        }
-
-        .student-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .student-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            background: linear-gradient(135deg, var(--primary-light), var(--primary));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .student-name {
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 2px;
-        }
-
-        .student-nim {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
+        .badge {
+            background: #dcfce7;
+            color: #16a34a;
+            padding: 5px 10px;
             border-radius: 20px;
             font-size: 12px;
-            font-weight: 500;
+            font-weight: 600;
         }
 
-        .status-badge.hadir {
-            background: #d1fae5;
-            color: var(--success);
+        .btn {
+            padding: 6px 12px;
+            background: #3b82f6;
+            border: none;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
         }
 
-        .status-badge.terlambat {
-            background: #fef3c7;
-            color: var(--warning);
+        .btn:hover {
+            background: #2563eb;
         }
 
-        .status-badge.tidak-hadir {
-            background: #fee2e2;
-            color: var(--danger);
-        }
-
-        .status-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: currentColor;
-        }
-
-        .device-info {
-            font-family: monospace;
-            font-size: 12px;
-            background: var(--background);
-            padding: 4px 8px;
-            border-radius: 4px;
-            color: var(--text-secondary);
-        }
-
-        .location-link {
-            color: var(--primary);
-            text-decoration: none;
+        .footer {
+            padding: 10px 30px;
             font-size: 13px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .location-link:hover {
-            text-decoration: underline;
-        }
-
-        .location-link svg {
-            width: 14px;
-            height: 14px;
-        }
-
-        .action-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            background: var(--background);
-            border: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .action-btn:hover {
-            background: var(--primary-light);
-            color: white;
-        }
-
-        .action-btn svg {
-            width: 18px;
-            height: 18px;
-            color: var(--text-secondary);
-        }
-
-        .action-btn:hover svg {
-            color: white;
-        }
-
-        /* Pagination */
-        .pagination {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 20px 24px;
-            border-top: 1px solid var(--border);
-        }
-
-        .pagination-info {
-            font-size: 14px;
-            color: var(--text-secondary);
-        }
-
-        .pagination-buttons {
-            display: flex;
-            gap: 8px;
-        }
-
-        .page-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 8px;
-            background: var(--background);
-            border: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-primary);
-            transition: all 0.2s ease;
-        }
-
-        .page-btn:hover {
-            border-color: var(--primary-light);
-            color: var(--primary);
-        }
-
-        .page-btn.active {
-            background: var(--primary);
-            border-color: var(--primary);
-            color: white;
-        }
-
-        .page-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .page-btn svg {
-            width: 18px;
-            height: 18px;
-        }
-
-        /* Responsive */
-        @media (max-width: 1400px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 992px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            .sidebar.active {
-                transform: translateX(0);
-            }
-            .main-content {
-                margin-left: 0;
-            }
-            .header {
-                padding: 16px 20px;
-            }
-            .content {
-                padding: 20px;
-            }
-            .filters-bar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .search-box {
-                width: 100%;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            .data-table {
-                display: block;
-                overflow-x: auto;
-            }
-            .page-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 16px;
-            }
-        }
-
-        /* Mobile menu toggle */
-        .mobile-toggle {
-            display: none;
-            width: 42px;
-            height: 42px;
-            border-radius: 10px;
-            background: var(--background);
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border: none;
-        }
-
-        .mobile-toggle svg {
-            width: 24px;
-            height: 24px;
-            color: var(--text-secondary);
-        }
-
-        @media (max-width: 992px) {
-            .mobile-toggle {
-                display: flex;
-            }
-        }
-
-        .overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 999;
-        }
-
-        .overlay.active {
-            display: block;
+            color: gray;
         }
     </style>
 </head>
 <body>
-    <!-- Overlay for mobile -->
-    <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="logo">
-                <div class="logo-icon">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/>
-                    </svg>
-                </div>
-                <div>
-                    <div class="logo-text">CyberCampus</div>
-                    <div class="logo-subtitle">Learning Platform</div>
-                </div>
-            </div>
-        </div>
+<div class="header">
+    <div class="title">Monitoring Presensi</div>
+    <button class="btn" onclick="refreshData()">Refresh</button>
+</div>
 
-        <nav class="sidebar-menu">
-            <div class="menu-label">Menu Utama</div>
-            <a href="dashboard.html" class="menu-item">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                </svg>
-                <span>Dashboard</span>
-            </a>
-            <a href="generate.html" class="menu-item">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
-                </svg>
-                <span>Generate QR Presensi</span>
-            </a>
-            <a href="monitoring.html" class="menu-item active">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                </svg>
-                <span>Monitoring Presensi</span>
-                <span class="menu-badge">12</span>
-            </a>
+<div class="stats">
+    <div class="stat-box">
+        <div class="stat-number" id="total">0</div>
+        <div class="stat-label">Total Presensi</div>
+    </div>
 
-            <div class="menu-label">Device</div>
-            <a href="devices.html" class="menu-item">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-                </svg>
-                <span>Monitoring Device</span>
-            </a>
-            <a href="accelerometer.html" class="menu-item">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                </svg>
-                <span>Accelerometer</span>
-            </a>
+    <div class="stat-box">
+        <div class="stat-number" id="hadir">0</div>
+        <div class="stat-label">Hadir</div>
+    </div>
 
-            <div class="menu-label">Mahasiswa</div>
-            <a href="scan-qr.html" class="menu-item">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-                </svg>
-                <span>Scan QR Presensi</span>
-            </a>
-        </nav>
+    <div class="stat-box">
+        <div class="stat-number" id="sesi">-</div>
+        <div class="stat-label">Session</div>
+    </div>
+</div>
 
-        <div class="sidebar-footer">
-            <div class="user-profile">
-                <div class="user-avatar">DR</div>
-                <div class="user-info">
-                    <div class="user-name">Dr. Rudi Hartono</div>
-                    <div class="user-role">Dosen Tetap</div>
-                </div>
-            </div>
-        </div>
-    </aside>
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>User ID</th>
+                <th>Course</th>
+                <th>Session</th>
+                <th>Device</th>
+                <th>Waktu</th>
+                <th>Status</th>
+                <th>Lokasi</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+        </tbody>
+    </table>
+</div>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <header class="header">
-            <div class="header-left">
-                <button class="mobile-toggle" onclick="toggleSidebar()">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                    </svg>
-                </button>
-                <div class="breadcrumb">
-                    <a href="dashboard.html">Dashboard</a>
-                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                    </svg>
-                    <span>Monitoring Presensi</span>
-                </div>
-            </div>
-            <div class="header-right">
-                <div class="header-icon">
-                    <span class="notification-dot"></span>
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                    </svg>
-                </div>
-                <div class="header-icon">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                    </svg>
-                </div>
-            </div>
-        </header>
+<div class="footer">
+    Last update: <span id="lastUpdate">-</span>
+</div>
 
-        <div class="content">
-            <div class="page-header">
-                <div>
-                    <h1 class="page-title">Monitoring Presensi</h1>
-                    <p class="page-subtitle">Pantau dan kelola data kehadiran mahasiswa secara real-time</p>
-                </div>
-                <button class="btn btn-primary" onclick="exportData()">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                    </svg>
-                    Export Data
-                </button>
-            </div>
-
-            <!-- Filters -->
-            <div class="filters-bar">
-                <div class="search-box">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                    </svg>
-                    <input type="text" placeholder="Cari nama atau NIM..." id="searchInput" onkeyup="filterTable()">
-                </div>
-                <select class="filter-select" id="courseFilter" onchange="filterTable()">
-                    <option value="">Semua Mata Kuliah</option>
-                    <option value="CLOUD-101">Cloud Computing</option>
-                    <option value="DB-201">Database Systems</option>
-                    <option value="AI-301">Artificial Intelligence</option>
-                </select>
-                <select class="filter-select" id="statusFilter" onchange="filterTable()">
-                    <option value="">Semua Status</option>
-                    <option value="hadir">Hadir</option>
-                    <option value="terlambat">Terlambat</option>
-                    <option value="tidak-hadir">Tidak Hadir</option>
-                </select>
-                <select class="filter-select" id="dateFilter" onchange="filterTable()">
-                    <option value="">Hari Ini</option>
-                    <option value="yesterday">Kemarin</option>
-                    <option value="week">Minggu Ini</option>
-                    <option value="month">Bulan Ini</option>
-                </select>
-                <button class="btn btn-outline" onclick="refreshData()">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                    </svg>
-                    Refresh
-                </button>
-            </div>
-
-            <!-- Data Table -->
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">Data Presensi</h2>
-                    <span style="font-size: 13px; color: var(--text-secondary);">Terakhir diperbarui: <span id="lastUpdate">25 Maret 2026, 08:45</span></span>
-                </div>
-                <table class="data-table" id="presenceTable">
-                    <thead>
-                        <tr>
-                            <th>Mahasiswa</th>
-                            <th>Mata Kuliah</th>
-                            <th>Waktu Check-in</th>
-                            <th>Device ID</th>
-                            <th>Lokasi</th>
-                            <th>Status</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>
-                                <div class="student-info">
-                                    <div class="student-avatar">AR</div>
-                                    <div>
-                                        <div class="student-name">Ahmad Rizky</div>
-                                        <div class="student-nim">2021001001</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>Cloud Computing</td>
-                            <td>08:02:34</td>
-                            <td><span class="device-info">HP-84521</span></td>
-                            <td>
-                                <a href="#" class="location-link">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    </svg>
-                                    -6.9175, 107.6191
-                                </a>
-                            </td>
-                            <td><span class="status-badge hadir"><span class="status-dot"></span>Hadir</span></td>
-                            <td>
-                                <button class="action-btn" title="Detail">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                    </svg>
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="student-info">
-                                    <div class="student-avatar" style="background: linear-gradient(135deg, var(--success), #059669);">SP</div>
-                                    <div>
-                                        <div class="student-name">Siti Putri</div>
-                                        <div class="student-nim">2021001002</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>Cloud Computing</td>
-                            <td>08:05:12</td>
-                            <td><span class="device-info">HP-32145</span></td>
-                            <td>
-                                <a href="#" class="location-link">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    </svg>
-                                    -6.9182, 107.6185
-                                </a>
-                            </td>
-                            <td><span class="status-badge hadir"><span class="status-dot"></span>Hadir</span></td>
-                            <td>
-                                <button class="action-btn" title="Detail">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                    </svg>
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="student-info">
-                                    <div class="student-avatar" style="background: linear-gradient(135deg, var(--accent), #d97706);">BP</div>
-                                    <div>
-                                        <div class="student-name">Budi Pratama</div>
-                                        <div class="student-nim">2021001003</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>Cloud Computing</td>
-                            <td>08:18:45</td>
-                            <td><span class="device-info">HP-67890</span></td>
-                            <td>
-                                <a href="#" class="location-link">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    </svg>
-                                    -6.9170, 107.6200
-                                </a>
-                            </td>
-                            <td><span class="status-badge terlambat"><span class="status-dot"></span>Terlambat</span></td>
-                            <td>
-                                <button class="action-btn" title="Detail">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                    </svg>
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="student-info">
-                                    <div class="student-avatar" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">DW</div>
-                                    <div>
-                                        <div class="student-name">Dewi Wulandari</div>
-                                        <div class="student-nim">2021001004</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>Cloud Computing</td>
-                            <td>08:00:22</td>
-                            <td><span class="device-info">HP-11223</span></td>
-                            <td>
-                                <a href="#" class="location-link">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    </svg>
-                                    -6.9178, 107.6188
-                                </a>
-                            </td>
-                            <td><span class="status-badge hadir"><span class="status-dot"></span>Hadir</span></td>
-                            <td>
-                                <button class="action-btn" title="Detail">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                    </svg>
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="student-info">
-                                    <div class="student-avatar" style="background: linear-gradient(135deg, var(--danger), #dc2626);">EK</div>
-                                    <div>
-                                        <div class="student-name">Eko Kurniawan</div>
-                                        <div class="student-nim">2021001005</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>Cloud Computing</td>
-                            <td>-</td>
-                            <td><span class="device-info">-</span></td>
-                            <td>
-                                <span style="color: var(--text-secondary); font-size: 13px;">Tidak tersedia</span>
-                            </td>
-                            <td><span class="status-badge tidak-hadir"><span class="status-dot"></span>Tidak Hadir</span></td>
-                            <td>
-                                <button class="action-btn" title="Detail">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                    </svg>
-                                </button>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <div class="student-info">
-                                    <div class="student-avatar">FH</div>
-                                    <div>
-                                        <div class="student-name">Fitriani Handayani</div>
-                                        <div class="student-nim">2021001006</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>Cloud Computing</td>
-                            <td>08:07:55</td>
-                            <td><span class="device-info">HP-44556</span></td>
-                            <td>
-                                <a href="#" class="location-link">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    </svg>
-                                    -6.9180, 107.6195
-                                </a>
-                            </td>
-                            <td><span class="status-badge hadir"><span class="status-dot"></span>Hadir</span></td>
-                            <td>
-                                <button class="action-btn" title="Detail">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                    </svg>
-                                </button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-                <div class="pagination">
-                    <div class="pagination-info">
-                        Menampilkan 1-6 dari 156 data
-                    </div>
-                    <div class="pagination-buttons">
-                        <button class="page-btn" disabled>
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                            </svg>
-                        </button>
-                        <button class="page-btn active">1</button>
-                        <button class="page-btn">2</button>
-                        <button class="page-btn">3</button>
-                        <button class="page-btn">...</button>
-                        <button class="page-btn">26</button>
-                        <button class="page-btn">
-                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbwzUheSSP7Ht8vf4vLjOhqP7tFTQ-Q5UL8KvDnTrQ9JEYhQ8kgrvLH7s82wNeiNJZ8/exec?path=presence/list";
+<script>
+const BASE_URL = "https://script.google.com/macros/s/AKfycbwzUheSSP7Ht8vf4vLjOhqP7tFTQ-Q5UL8KvDnTrQ9JEYhQ8kgrvLH7s82wNeiNJZ8/exec";
 
 async function loadPresence(){
-    const res = await fetch(API_URL);
+    const res = await fetch(`${BASE_URL}?path=presence/list`);
     const result = await res.json();
 
     if(!result.ok) return;
 
     const data = result.data;
-    const tbody = document.querySelector("#presenceTable tbody");
+    const tbody = document.getElementById("tableBody");
     tbody.innerHTML = "";
 
-    let hadir = 0;
-    let terlambat = 0;
-    let tidakHadir = 0;
+    document.getElementById("total").innerText = data.length;
+    document.getElementById("hadir").innerText = data.length;
+
+    if(data.length > 0){
+        document.getElementById("sesi").innerText = data[0].session_id;
+    }
 
     data.forEach(row => {
-
-        let statusClass = "hadir";
-        let statusText = "Hadir";
-
-        if(row.status === "terlambat"){
-            statusClass = "terlambat";
-            statusText = "Terlambat";
-            terlambat++;
-        } else if(row.status === "tidak-hadir"){
-            statusClass = "tidak-hadir";
-            statusText = "Tidak Hadir";
-            tidakHadir++;
-        } else {
-            hadir++;
-        }
 
         const time = new Date(row.ts).toLocaleTimeString("id-ID");
 
         const tr = `
         <tr>
-            <td>
-                <div class="student-info">
-                    <div class="student-avatar">${row.user_id.substring(0,2).toUpperCase()}</div>
-                    <div>
-                        <div class="student-name">${row.user_id}</div>
-                        <div class="student-nim">${row.user_id}</div>
-                    </div>
-                </div>
-            </td>
+            <td>${row.user_id}</td>
             <td>${row.course_id}</td>
+            <td>${row.session_id}</td>
+            <td>${row.device_id}</td>
             <td>${time}</td>
-            <td><span class="device-info">${row.device_id}</span></td>
-            <td>
-                <a target="_blank" href="https://www.google.com/maps?q=${row.lat},${row.lng}" class="location-link">
-                    ${row.lat}, ${row.lng}
-                </a>
-            </td>
-            <td>
-                <span class="status-badge ${statusClass}">
-                    <span class="status-dot"></span>${statusText}
-                </span>
-            </td>
-            <td>
-                <button class="action-btn" onclick="openMap('${row.lat}','${row.lng}')">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 20l-5.447-2.724A2 2 0 013 15.382V5a2 2 0 012-2h.382a2 2 0 01.894.211L9 5m0 15l6-3m-6 3V5m6 12l4.553-2.276A2 2 0 0021 12.618V3a2 2 0 00-2-2h-.382a2 2 0 00-.894.211L15 3m0 14V3m0 0L9 5"/>
-                    </svg>
-                </button>
-            </td>
+            <td><span class="badge">Hadir</span></td>
+            <td><button class="btn" onclick="openMap()">Lihat</button></td>
         </tr>
         `;
 
         tbody.innerHTML += tr;
     });
 
-    // Update statistik
-    document.querySelectorAll(".stat-value")[1].innerText = hadir;
-    document.querySelectorAll(".stat-value")[2].innerText = terlambat;
-    document.querySelectorAll(".stat-value")[3].innerText = tidakHadir;
-    document.querySelectorAll(".stat-value")[0].innerText = data.length;
-
-    document.getElementById("lastUpdate").innerText = new Date().toLocaleString("id-ID");
+    document.getElementById("lastUpdate").innerText =
+        new Date().toLocaleString("id-ID");
 }
 
-// buka maps
-function openMap(lat,lng){
-    window.open(`https://www.google.com/maps?q=${lat},${lng}`);
+function openMap(){
+    window.open("monitoring-maps.html");
 }
 
-// refresh manual
 function refreshData(){
     loadPresence();
 }
 
-// auto refresh tiap 5 detik
 setInterval(loadPresence, 5000);
-
-// pertama kali load
 loadPresence();
 </script>
+
 </body>
 </html>
